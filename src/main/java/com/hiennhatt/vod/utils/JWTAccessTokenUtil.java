@@ -1,16 +1,15 @@
-package com.hiennhatt.vod.configs;
+package com.hiennhatt.vod.utils;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -22,12 +21,11 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-@SpringBootConfiguration
-public class JWTConfig {
+@Component
+public class JWTAccessTokenUtil {
     @Autowired
     private Environment env;
 
-    @Bean
     public JwtDecoder jwtDecoder() {
         try {
             return NimbusJwtDecoder.withPublicKey(getPublicKey()).build();
@@ -36,7 +34,6 @@ public class JWTConfig {
         }
     }
 
-    @Bean
     public JwtEncoder jwtEncoder() {
         try {
             RSAKey rsaKey = (new RSAKey.Builder(getPublicKey())).privateKey(getPrivateKey()).build();
@@ -49,13 +46,13 @@ public class JWTConfig {
 
     private RSAPublicKey getPublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(env.getProperty("jwt.keypair.publicKey")));
+        EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(env.getProperty("jwt.keypair.access.publicKey")));
         return (RSAPublicKey) keyFactory.generatePublic(keySpec);
     }
 
     private RSAPrivateKey getPrivateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(env.getProperty("jwt.keypair.privateKey")));
+        EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(env.getProperty("jwt.keypair.access.privateKey")));
         return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
     }
 }

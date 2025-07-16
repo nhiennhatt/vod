@@ -49,7 +49,7 @@ public class Comment {
 
     @NotNull
     @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     @NotNull

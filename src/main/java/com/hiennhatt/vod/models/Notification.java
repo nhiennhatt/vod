@@ -58,7 +58,7 @@ public class Notification {
     @NotNull
     @Lob
     @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private Status status;
 
 }

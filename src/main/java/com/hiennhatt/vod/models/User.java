@@ -25,7 +25,7 @@ public class User {
     @Id
     @Column(unique = true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(unique = true)
     private String email;
@@ -39,19 +39,19 @@ public class User {
     @Column
     private boolean isVerified;
 
-    @Column
+    @Column(name = "created_on")
     @CreationTimestamp
     private Instant createdOn;
 
-    @Column
+    @Column(name = "updated_on")
     @UpdateTimestamp
     private Instant updatedOn;
 
     @Column
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     @Column
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private Role role;
 }

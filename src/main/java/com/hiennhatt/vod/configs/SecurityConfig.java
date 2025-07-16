@@ -1,5 +1,6 @@
 package com.hiennhatt.vod.configs;
 
+import com.hiennhatt.vod.utils.JWTAccessTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +11,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @SpringBootConfiguration
@@ -22,7 +22,7 @@ public class SecurityConfig {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private JwtDecoder jwtDecoder;
+    private JWTAccessTokenUtil jwtAccessTokenUtil;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -34,7 +34,7 @@ public class SecurityConfig {
         http
             .csrf(CsrfConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .oauth2ResourceServer(customizer -> customizer.jwt(jwt -> jwt.decoder(jwtDecoder)))
+            .oauth2ResourceServer(customizer -> customizer.jwt(jwt -> jwt.decoder(jwtAccessTokenUtil.jwtDecoder())))
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();

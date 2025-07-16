@@ -58,13 +58,13 @@ public class Video {
     private String location;
 
     @NotNull
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Video.Status status;
 
     @NotNull
     @Column(name = "privacy", nullable = false)
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private Privacy privacy;
 
     @NotNull
