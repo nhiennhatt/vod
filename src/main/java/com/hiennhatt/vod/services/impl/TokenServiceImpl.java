@@ -4,12 +4,12 @@ import com.hiennhatt.vod.dtos.GainTokenDTO;
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.repositories.UserRepository;
 import com.hiennhatt.vod.services.TokenService;
-import com.hiennhatt.vod.utils.JWTAccessTokenUtil;
-import com.hiennhatt.vod.utils.JWTRefreshTokenUtil;
+import com.hiennhatt.vod.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
@@ -24,16 +24,13 @@ public class TokenServiceImpl implements TokenService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private JWTAccessTokenUtil jwtAccessTokenUtil;
+    private JWTUtils jwtAccessTokenUtil;
     @Autowired
-    private JWTRefreshTokenUtil jwtRefreshTokenUtil;
+    private JWTUtils jwtRefreshTokenUtil;
     @Autowired
     private Environment env;
 
-    @Override
-    public GainTokenDTO generateToken(String username, String password) {
-        User user = userRepository.findUsersByUsername(username);
-        if (user == null || !passwordEncoder.matches(password, user.getPassword())) throw new ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid username or password");
+    private GainTokenDTO generateToken(User user) {
         Instant now = Instant.now();
         JwtClaimsSet accessTokenClaimSet = JwtClaimsSet.builder()
             .issuedAt(now)
@@ -53,5 +50,21 @@ public class TokenServiceImpl implements TokenService {
         String refreshToken = this.jwtRefreshTokenUtil.jwtEncoder().encode(JwtEncoderParameters.from(refreshTokenClaimSet)).getTokenValue();
 
         return new GainTokenDTO(accessToken, refreshToken);
+    }
+
+    @Override
+    public GainTokenDTO gainToken(String username, String password) {
+        User user = userRepository.findUsersByUsername(username);
+        if (user == null || !passwordEncoder.matches(password, user.getPassword())) throw new ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid username or password");
+        return this.generateToken(user);
+    }
+
+    @Override
+    public GainTokenDTO refreshToken(String refreshToken) {
+        Jwt jwt = jwtRefreshTokenUtil.jwtDecoder().decode(refreshToken);
+        String username = (String) jwt.getClaims().get("sub");
+        User user = userRepository.findUsersByUsername(username);
+        if (user == null) throw new ResponseStatusException(HttpStatusCode.valueOf(401));
+        return this.generateToken(user);
     }
 }

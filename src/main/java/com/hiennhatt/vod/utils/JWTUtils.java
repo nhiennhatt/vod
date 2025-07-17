@@ -3,13 +3,10 @@ package com.hiennhatt.vod.utils;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -21,10 +18,13 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-@Component
-public class JWTAccessTokenUtil {
-    @Autowired
-    private Environment env;
+public class JWTUtils {
+    private final String privateKey;
+    private final String publicKey;
+    public JWTUtils(String privateKey, String publicKey) {
+        this.privateKey = privateKey;
+        this.publicKey = publicKey;
+    }
 
     public JwtDecoder jwtDecoder() {
         try {
@@ -46,13 +46,13 @@ public class JWTAccessTokenUtil {
 
     private RSAPublicKey getPublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(env.getProperty("jwt.keypair.access.publicKey")));
+        EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKey));
         return (RSAPublicKey) keyFactory.generatePublic(keySpec);
     }
 
     private RSAPrivateKey getPrivateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(env.getProperty("jwt.keypair.access.privateKey")));
+        EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey));
         return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
     }
 }
