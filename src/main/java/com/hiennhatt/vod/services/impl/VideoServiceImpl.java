@@ -1,7 +1,11 @@
 package com.hiennhatt.vod.services.impl;
 
+import com.hiennhatt.vod.models.Category;
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.Video;
+import com.hiennhatt.vod.models.VideoCategory;
+import com.hiennhatt.vod.repositories.CategoryRepository;
+import com.hiennhatt.vod.repositories.VideoCategoryRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
 import com.hiennhatt.vod.services.VideoService;
 import com.hiennhatt.vod.utils.ffmpeg.FFmpegUtils;
@@ -19,20 +23,26 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class VideoServiceImpl implements VideoService {
-    private Path tempDirPath;
-    private Path publicDirPath;
-    private Path videoDirPath;
+    private final Path tempDirPath;
+    private final Path publicDirPath;
+    private final Path videoDirPath;
 
     @Autowired
     private VideoRepository videoRepository;
 
-    @PostConstruct
-    public void init(
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private VideoCategoryRepository videoCategoryRepository;
+
+    public VideoServiceImpl(
         @Value("${tempDir}") String tempDir,
         @Value("${publicDir}") String publicDir,
         @Value("${videoDir}") String videoDir
@@ -74,6 +84,16 @@ public class VideoServiceImpl implements VideoService {
 
             Video video = generateVideoInstance(uploadVideoBody, user, uuid);
             videoRepository.save(video);
+            List<VideoCategory> categories = uploadVideoBody.getCategories().stream().map(item -> {
+                Category category = categoryRepository.findCategoryBySlug(item);
+                if (category == null) throw new RuntimeException();
+
+                VideoCategory videoCategory = new VideoCategory();
+                videoCategory.setVideo(video);
+                videoCategory.setCategory(category);
+                return videoCategory;
+            }).toList();
+            videoCategoryRepository.saveAll(categories);
             tempVideoPath.toFile().delete();
             return video;
         } catch (Exception e) {

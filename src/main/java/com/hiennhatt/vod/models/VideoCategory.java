@@ -24,17 +24,14 @@ public class VideoCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull
     @ColumnDefault("(uuid_to_bin(uuid()))")
     @Column(name = "uid", nullable = false, length = 16)
     private UUID uid;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "video_id", nullable = false)
     private Video video;

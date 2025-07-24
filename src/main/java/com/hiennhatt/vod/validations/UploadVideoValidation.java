@@ -23,8 +23,8 @@ public class UploadVideoValidation {
     @Pattern(regexp = "^PUBLIC|PRIVATE|LIMITED$")
     private String privacy;
 
-//    @Size(min = 1, max = 10)
-//    private List<String> categories;
+    @Size(min = 1, max = 10)
+    private List<String> categories;
 
     @NotNull
     @IsImage
