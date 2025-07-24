@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @SpringBootConfiguration
+@EnableMethodSecurity()
 public class SecurityConfig {
     @Autowired
     private Environment env;
@@ -36,11 +38,21 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CustomJwtAuthenticationConverter customJwtAuthenticationConverter() {
+        return new CustomJwtAuthenticationConverter(userDetailsService);
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(CsrfConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .oauth2ResourceServer(customizer -> customizer.jwt(jwt -> jwt.decoder(jwtAccessTokenUtil().jwtDecoder())))
+            .oauth2ResourceServer(customizer -> customizer
+                .jwt(jwt -> jwt
+                    .decoder(jwtAccessTokenUtil().jwtDecoder())
+                    .jwtAuthenticationConverter(customJwtAuthenticationConverter())
+                )
+            )
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();

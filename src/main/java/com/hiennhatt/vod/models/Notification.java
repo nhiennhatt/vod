@@ -6,13 +6,18 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "notifications")
+@DynamicInsert
 public class Notification {
     public enum Status {
         SEND, SEEN, INACTIVE
@@ -20,13 +25,13 @@ public class Notification {
 
     @Id
     @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Size(max = 16)
     @NotNull
     @ColumnDefault("(uuid_to_bin(uuid()))")
     @Column(name = "uid", nullable = false, length = 16)
-    private String uid;
+    private UUID uid;
 
     @Size(max = 255)
     @NotNull
@@ -39,20 +44,20 @@ public class Notification {
     private String content;
 
     @Size(max = 255)
-    @Column(name = "`continue`")
-    private String continueField;
+    @Column(name = "next")
+    private String next;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "to_user", nullable = false)
     private User toUser;
 
-    @NotNull
     @Column(name = "created_on", nullable = false)
+    @CreationTimestamp
     private Instant createdOn;
 
-    @NotNull
     @Column(name = "updated_on", nullable = false)
+    @UpdateTimestamp
     private Instant updatedOn;
 
     @NotNull

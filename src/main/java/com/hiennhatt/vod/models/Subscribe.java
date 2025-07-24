@@ -6,23 +6,28 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "subscribes")
+@DynamicInsert
 public class Subscribe {
     @Id
     @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Size(max = 16)
     @NotNull
     @ColumnDefault("(uuid_to_bin(uuid()))")
     @Column(name = "uid", nullable = false, length = 16)
-    private String uid;
+    private UUID uid;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -34,12 +39,12 @@ public class Subscribe {
     @JoinColumn(name = "dest_user", nullable = false)
     private User destUser;
 
-    @NotNull
-    @Column(name = "created_on", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_on")
     private Instant createdOn;
 
-    @NotNull
-    @Column(name = "updated_on", nullable = false)
+    @UpdateTimestamp
+    @Column(name = "updated_on")
     private Instant updatedOn;
 
 }

@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -13,6 +16,7 @@ import java.time.LocalDate;
 @Setter
 @Entity
 @Table(name = "user_informs")
+@DynamicInsert
 public class UserInform {
     @Id
     @Column(name = "id", nullable = false)
@@ -42,20 +46,20 @@ public class UserInform {
     @Column(name = "description")
     private String description;
 
-    @Size(max = 255)
-    @Column(name = "avatar")
+    @Size(max = 40)
+    @Column(name = "avatar", length = 45)
     private String avatar;
 
-    @Size(max = 255)
-    @Column(name = "cover_img")
+    @Size(max = 40)
+    @Column(name = "cover_img", length = 45)
     private String coverImg;
 
-    @NotNull
-    @Column(name = "created_on", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_on")
     private Instant createdOn;
 
-    @NotNull
-    @Column(name = "updated_on", nullable = false)
+    @UpdateTimestamp
+    @Column(name = "updated_on")
     private Instant updatedOn;
 
 }

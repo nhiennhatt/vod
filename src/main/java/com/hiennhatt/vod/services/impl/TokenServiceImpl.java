@@ -54,7 +54,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public GainTokenDTO gainToken(String username, String password) {
-        User user = userRepository.findUsersByUsername(username);
+        User user = userRepository.findByUsername(username);
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) throw new ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid username or password");
         return this.generateToken(user);
     }
@@ -63,7 +63,7 @@ public class TokenServiceImpl implements TokenService {
     public GainTokenDTO refreshToken(String refreshToken) {
         Jwt jwt = jwtRefreshTokenUtil.jwtDecoder().decode(refreshToken);
         String username = (String) jwt.getClaims().get("sub");
-        User user = userRepository.findUsersByUsername(username);
+        User user = userRepository.findByUsername(username);
         if (user == null) throw new ResponseStatusException(HttpStatusCode.valueOf(401));
         return this.generateToken(user);
     }

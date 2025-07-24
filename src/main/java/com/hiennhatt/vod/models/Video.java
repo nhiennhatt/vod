@@ -6,16 +6,21 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "videos")
+@DynamicInsert
 public class Video {
     public enum Status {
-        PROCESSING, ACTIVE, INACTIVE, VIOLATE
+        PROCESSING, FAILED, ACTIVE, INACTIVE, VIOLATED
     }
 
     public enum Privacy {
@@ -24,13 +29,12 @@ public class Video {
 
     @Id
     @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Size(max = 16)
-    @NotNull
     @ColumnDefault("(uuid_to_bin(uuid()))")
     @Column(name = "uid", nullable = false, length = 16)
-    private String uid;
+    private UUID uid;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -39,12 +43,12 @@ public class Video {
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "title", nullable = false)
+    private String title;
 
-    @Size(max = 255)
+    @Size(max = 45)
     @NotNull
-    @Column(name = "thumbnail", nullable = false)
+    @Column(name = "thumbnail", nullable = false, length = 45)
     private String thumbnail;
 
     @NotNull
@@ -52,27 +56,29 @@ public class Video {
     @Column(name = "description", nullable = false)
     private String description;
 
-    @Size(max = 255)
+    @Size(max = 45)
     @NotNull
-    @Column(name = "location", nullable = false)
-    private String location;
+    @Column(name = "file_name", nullable = false, length = 45)
+    private String fileName;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
+    @ColumnDefault("'PROCESSING'")
+    @Lob
     @Column(name = "status", nullable = false)
-    private Video.Status status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @NotNull
+    @Lob
     @Column(name = "privacy", nullable = false)
     @Enumerated(EnumType.STRING)
     private Privacy privacy;
 
-    @NotNull
-    @Column(name = "created_on", nullable = false)
+    @Column(name = "created_on")
+    @CreationTimestamp
     private Instant createdOn;
 
-    @NotNull
-    @Column(name = "updated_on", nullable = false)
+    @Column(name = "updated_on")
+    @UpdateTimestamp
     private Instant updatedOn;
 
 }

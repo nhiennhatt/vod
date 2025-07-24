@@ -1,10 +1,13 @@
 package com.hiennhatt.vod.models;
 
 import jakarta.persistence.*;
-
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
@@ -13,6 +16,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "users")
+@DynamicInsert
 public class User {
     public enum Status {
         ACTIVE, INACTIVE, DELETED
@@ -23,35 +27,48 @@ public class User {
     }
 
     @Id
-    @Column(unique = true)
+    @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(unique = true)
-    private String email;
-
-    @Column(unique = true)
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "username", nullable = false)
     private String username;
 
-    @Column
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "email", nullable = false)
+    private String email;
+
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column
-    private boolean isVerified;
-
-    @Column(name = "created_on")
-    @CreationTimestamp
-    private Instant createdOn;
-
-    @Column(name = "updated_on")
-    @UpdateTimestamp
-    private Instant updatedOn;
-
-    @Column
+    @NotNull
+    @ColumnDefault("'ACTIVE'")
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column
+    @NotNull
+    @ColumnDefault("0")
+    @Column(name = "isVerified", nullable = false)
+    private Boolean isVerified = false;
+
+    @NotNull
+    @ColumnDefault("'ROLE_USER'")
     @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
     private Role role;
+
+    @CreationTimestamp
+    @Column(name = "created_on")
+    private Instant createdOn;
+
+    @UpdateTimestamp
+    @Column(name = "updated_on")
+    private Instant updatedOn;
+
 }

@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(this.passwordEncoder.encode(user.getPassword()));
         user.setUsername(user.getUsername().toLowerCase());
         user.setStatus(User.Status.ACTIVE);
-        user.setVerified(false);
+        user.setIsVerified(false);
         Instant now = Instant.now();
         user.setCreatedOn(now);
         user.setUpdatedOn(now);

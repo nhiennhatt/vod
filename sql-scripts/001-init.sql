@@ -27,8 +27,8 @@ CREATE TABLE `user_informs`
     `middle_name`   VARCHAR(255),
     `date_of_birth` DATE,
     `description`   TEXT,
-    `avatar`        VARCHAR(255),
-    `cover_img`     VARCHAR(255),
+    `avatar`        VARCHAR(45) unique,
+    `cover_img`     VARCHAR(45) unique,
     `created_on`    TIMESTAMP NOT NULL,
     `updated_on`    TIMESTAMP NOT NULL,
     PRIMARY KEY (`id`)
@@ -37,17 +37,17 @@ CREATE TABLE `user_informs`
 
 CREATE TABLE `videos`
 (
-    `id`          INTEGER AUTO_INCREMENT UNIQUE                        NOT NULL,
-    `uid`         BINARY(16) UNIQUE                                    NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
-    `user_id`     INTEGER                                              NOT NULL,
-    `name`        VARCHAR(255)                                         NOT NULL,
-    `thumbnail`   VARCHAR(255)                                         NOT NULL,
-    `description` TEXT                                                 NOT NULL,
-    `location`    VARCHAR(255)                                         NOT NULL,
-    `status`      ENUM ('PROCESSING', 'ACTIVE', 'INACTIVE', 'VIOLATE') NOT NULL DEFAULT 'PROCESSING',
-    `privacy`     ENUM ('PUBLIC', 'PRIVATE', 'LIMITED')                NOT NULL,
-    `created_on`  TIMESTAMP                                            NOT NULL,
-    `updated_on`  TIMESTAMP                                            NOT NULL,
+    `id`          INTEGER AUTO_INCREMENT UNIQUE                                   NOT NULL,
+    `uid`         BINARY(16) UNIQUE                                               NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+    `user_id`     INTEGER                                                         NOT NULL,
+    `title`        VARCHAR(255)                                                    NOT NULL,
+    `thumbnail`   VARCHAR(45)                                                     NOT NULL,
+    `description` TEXT                                                            NOT NULL,
+    `file_name`   VARCHAR(45)                                                     NOT NULL,
+    `status`      ENUM ('PROCESSING', 'ACTIVE', 'INACTIVE', 'VIOLATED', 'FAILED') NOT NULL DEFAULT 'PROCESSING',
+    `privacy`     ENUM ('PUBLIC', 'PRIVATE', 'LIMITED')                           NOT NULL,
+    `created_on`  TIMESTAMP                                                       NOT NULL,
+    `updated_on`  TIMESTAMP                                                       NOT NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -183,7 +183,7 @@ CREATE TABLE `notifications`
     `uid`        BINARY(16) UNIQUE                 NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
     `title`      VARCHAR(255)                      NOT NULL,
     `content`    TEXT                              NOT NULL,
-    `continue`   VARCHAR(255),
+    `next`       VARCHAR(255),
     `to_user`    INTEGER                           NOT NULL,
     `created_on` TIMESTAMP                         NOT NULL,
     `updated_on` TIMESTAMP                         NOT NULL,
