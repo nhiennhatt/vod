@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
         this.userRepository.save(user);
 
         UserInform userInform = new UserInform();
-        userInform.setUsers(user);
+        userInform.setUser(user);
         userInform.setCreatedOn(now);
         userInform.setUpdatedOn(now);
         this.userInformRepository.save(userInform);

@@ -7,11 +7,11 @@ import com.hiennhatt.vod.models.VideoCategory;
 import com.hiennhatt.vod.repositories.CategoryRepository;
 import com.hiennhatt.vod.repositories.VideoCategoryRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
+import com.hiennhatt.vod.repositories.projections.VideoOverview;
 import com.hiennhatt.vod.services.VideoService;
 import com.hiennhatt.vod.utils.ffmpeg.FFmpegUtils;
 import com.hiennhatt.vod.utils.ffmpeg.MultimediaInform;
 import com.hiennhatt.vod.validations.UploadVideoValidation;
-import jakarta.annotation.PostConstruct;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
@@ -100,6 +100,10 @@ public class VideoServiceImpl implements VideoService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public VideoOverview getVideoOverview(String uuid) {
+        return videoRepository.getVideoOverview(UUID.fromString(uuid));
     }
 
     private Video generateVideoInstance(UploadVideoValidation uploadVideoBody, User user, String uuid) {

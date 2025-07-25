@@ -1,12 +1,14 @@
 package com.hiennhatt.vod.controllers;
 
 import com.hiennhatt.vod.models.CustomUserDetails;
+import com.hiennhatt.vod.repositories.projections.VideoOverview;
 import com.hiennhatt.vod.services.VideoService;
 import com.hiennhatt.vod.validations.UploadVideoValidation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -22,5 +24,11 @@ public class VideoController {
     @ResponseStatus(code = HttpStatus.CREATED)
     public void uploadVideo(@ModelAttribute @Valid UploadVideoValidation body, @AuthenticationPrincipal CustomUserDetails user) {
         this.videoService.uploadVideo(body, user.getUser());
+    }
+
+    @GetMapping("/{uid}/overview")
+    @PostAuthorize("returnObject.privacy != returnObject.privacy.PRIVATE || (isAuthenticated() && principal.username == returnObject.user.username)")
+    public VideoOverview getVideoOverview(@PathVariable String uid) {
+        return this.videoService.getVideoOverview(uid);
     }
 }

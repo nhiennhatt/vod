@@ -71,4 +71,6 @@ public class User {
     @Column(name = "updated_on")
     private Instant updatedOn;
 
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private UserInform userInform;
 }

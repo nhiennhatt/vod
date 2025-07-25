@@ -25,7 +25,7 @@ public class UserInform {
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id", nullable = false)
-    private User users;
+    private User user;
 
     @Size(max = 255)
     @Column(name = "first_name")
