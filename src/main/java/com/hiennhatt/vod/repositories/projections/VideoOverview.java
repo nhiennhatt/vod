@@ -13,8 +13,6 @@ public class VideoOverview {
 
     private String title;
 
-    private String description;
-
     private Video.Privacy privacy;
 
     private Video.Status status;

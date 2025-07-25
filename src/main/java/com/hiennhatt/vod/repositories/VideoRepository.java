@@ -14,6 +14,6 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
 
     Video findVideoByUid(UUID uid);
 
-    @Query("SELECT new com.hiennhatt.vod.repositories.projections.VideoOverview(v.uid, v.title, v.description, v.privacy, v.status, v.thumbnail, new com.hiennhatt.vod.repositories.projections.UserOverview(v.user.username, v.user.userInform.firstName, v.user.userInform.lastName, v.user.userInform.avatar)) FROM Video v WHERE v.uid = :uid")
+    @Query("SELECT new com.hiennhatt.vod.repositories.projections.VideoOverview(v.uid, v.title, v.privacy, v.status, v.thumbnail, new com.hiennhatt.vod.repositories.projections.UserOverview(v.user.username, v.user.userInform.firstName, v.user.userInform.lastName, v.user.userInform.avatar)) FROM Video v WHERE v.uid = :uid")
     VideoOverview getVideoOverview(UUID uid);
 }
