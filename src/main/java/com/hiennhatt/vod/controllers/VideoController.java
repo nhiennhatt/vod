@@ -1,8 +1,13 @@
 package com.hiennhatt.vod.controllers;
 
 import com.hiennhatt.vod.models.CustomUserDetails;
+import com.hiennhatt.vod.models.Video;
+import com.hiennhatt.vod.models.VideoCategory;
+import com.hiennhatt.vod.repositories.projections.VideoDetail;
 import com.hiennhatt.vod.repositories.projections.VideoOverview;
 import com.hiennhatt.vod.services.VideoService;
+import com.hiennhatt.vod.validations.UpdateVideoThumbnailValidation;
+import com.hiennhatt.vod.validations.UpdateVideoValidation;
 import com.hiennhatt.vod.validations.UploadVideoValidation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +16,10 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/video")
@@ -30,5 +38,29 @@ public class VideoController {
     @PostAuthorize("returnObject.privacy != returnObject.privacy.PRIVATE || (isAuthenticated() && principal.username == returnObject.user.username)")
     public VideoOverview getVideoOverview(@PathVariable String uid) {
         return this.videoService.getVideoOverview(uid);
+    }
+
+    @GetMapping("/{uid}")
+    @PostAuthorize("returnObject.privacy != returnObject.privacy.PRIVATE || (isAuthenticated() && principal.username == returnObject.user.username)")
+    public VideoDetail getVideo(@PathVariable String uid) {
+        return this.videoService.getVideo(uid);
+    }
+
+    @PutMapping("/{uid}")
+    @PreAuthorize("isAuthenticated()")
+    public void updateVideo(@PathVariable String uid ,@RequestBody @Validated UpdateVideoValidation updateVideoValidation, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        this.videoService.updateVideo(UUID.fromString(uid), updateVideoValidation, customUserDetails.getUser());
+    }
+
+    @PutMapping("/{uid}/thumbnail")
+    @PreAuthorize("isAuthenticated()")
+    public void updateVideoThumbnail(@PathVariable String uid, @ModelAttribute @Validated UpdateVideoThumbnailValidation updateVideoThumbnailValidation, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        this.videoService.updateVideoThumbnail(UUID.fromString(uid), updateVideoThumbnailValidation, customUserDetails.getUser());
+    }
+
+    @DeleteMapping("/{uid}")
+    @PreAuthorize("isAuthenticated()")
+    public void deleteVideo(@PathVariable String uid, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        this.videoService.deleteVideo(uid, customUserDetails.getUser());
     }
 }

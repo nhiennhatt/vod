@@ -7,18 +7,22 @@ import com.hiennhatt.vod.models.VideoCategory;
 import com.hiennhatt.vod.repositories.CategoryRepository;
 import com.hiennhatt.vod.repositories.VideoCategoryRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
+import com.hiennhatt.vod.repositories.projections.VideoDetail;
 import com.hiennhatt.vod.repositories.projections.VideoOverview;
 import com.hiennhatt.vod.services.VideoService;
+import com.hiennhatt.vod.utils.StoreUtils;
 import com.hiennhatt.vod.utils.ffmpeg.FFmpegUtils;
 import com.hiennhatt.vod.utils.ffmpeg.MultimediaInform;
+import com.hiennhatt.vod.validations.UpdateVideoThumbnailValidation;
+import com.hiennhatt.vod.validations.UpdateVideoValidation;
 import com.hiennhatt.vod.validations.UploadVideoValidation;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -63,17 +67,16 @@ public class VideoServiceImpl implements VideoService {
     @Override
     @Transactional
     public Video uploadVideo(UploadVideoValidation uploadVideoBody, User user) {
-        String uuid = UUID.randomUUID().toString();
+        String uid = UUID.randomUUID().toString();
+        String thumbnailUid = StoreUtils.generateUidForThumbnail();
 
         try {
-            Path tempVideoPath = tempDirPath.resolve(uuid + "_temp");
-            Path thumbnailPath = publicDirPath.resolve(uuid + getExtension(uploadVideoBody.getThumbnail().getContentType()));
-            Path videoItemDirPath = videoDirPath.resolve(uuid);
+            Path imagePath = StoreUtils.save(publicDirPath, thumbnailUid, uploadVideoBody.getThumbnail());
+            Path tempVideoPath = StoreUtils.saveTemp(tempDirPath, uid, uploadVideoBody.getVideo());
+
+            Path videoItemDirPath = videoDirPath.resolve(uid);
             Files.createDirectories(videoItemDirPath);
             Path videoPath = videoItemDirPath.resolve("manifest.mpd");
-
-            uploadVideoBody.getThumbnail().transferTo(thumbnailPath);
-            uploadVideoBody.getVideo().transferTo(tempVideoPath);
 
             MultimediaInform videoStreamInform = FFmpegUtils.getStreamInform("v:0", tempVideoPath.toString());
             if (videoStreamInform == null || videoStreamInform.getStreams().isEmpty())
@@ -82,7 +85,7 @@ public class VideoServiceImpl implements VideoService {
             MultimediaInform audioStreamInform = FFmpegUtils.getStreamInform("a:0", tempVideoPath.toString());
             FFmpegUtils.generateMpd(videoPath.toString(), tempVideoPath.toString(), videoStreamInform.getStreams().get(0), audioStreamInform != null && !audioStreamInform.getStreams().isEmpty() ? audioStreamInform.getStreams().get(0) : null);
 
-            Video video = generateVideoInstance(uploadVideoBody, user, uuid);
+            Video video = generateVideoInstance(uploadVideoBody, user, uid, imagePath.getFileName().toString());
             videoRepository.save(video);
             List<VideoCategory> categories = uploadVideoBody.getCategories().stream().map(item -> {
                 Category category = categoryRepository.findCategoryBySlug(item);
@@ -98,34 +101,73 @@ public class VideoServiceImpl implements VideoService {
             return video;
         } catch (Exception e) {
             e.printStackTrace();
+            throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload video");
         }
-        return null;
     }
 
     public VideoOverview getVideoOverview(String uuid) {
         return videoRepository.getVideoOverview(UUID.fromString(uuid));
     }
 
-    private Video generateVideoInstance(UploadVideoValidation uploadVideoBody, User user, String uuid) {
+    private Video generateVideoInstance(UploadVideoValidation uploadVideoBody, User user, String uid, String imagePath) {
         Video video = new Video();
-        video.setUid(UUID.fromString(uuid));
+        video.setUid(UUID.fromString(uid));
         video.setUser(user);
         video.setTitle(uploadVideoBody.getTitle());
         video.setDescription(uploadVideoBody.getDescription());
         video.setPrivacy(uploadVideoBody.getPrivacyEnum());
         video.setStatus(Video.Status.PROCESSING);
-        video.setThumbnail(uuid + "." + Objects.requireNonNull(uploadVideoBody.getThumbnail().getOriginalFilename()).substring(uploadVideoBody.getThumbnail().getOriginalFilename().lastIndexOf(".") + 1));
-        video.setFileName(uuid + "." + Objects.requireNonNull(uploadVideoBody.getVideo().getOriginalFilename()).substring(uploadVideoBody.getVideo().getOriginalFilename().lastIndexOf(".") + 1));
+        video.setThumbnail(imagePath);
+        video.setFileName(uid);
         return video;
     }
 
-    private String getExtension(String contentType) {
-        MimeTypes mimeTypes = MimeTypes.getDefaultMimeTypes();
+    public VideoDetail getVideo(String uuid) {
+        VideoDetail video = videoRepository.getVideoDetail(UUID.fromString(uuid));
+        if (video == null) {
+            throw new IllegalArgumentException("Video not found with ID: " + uuid);
+        }
+        return video;
+    }
+
+    @Transactional
+    public void updateVideo(UUID uid, UpdateVideoValidation video, User user) {
+        this.videoRepository.updateVideo(uid, video.getTitle(), video.getDescription(), video.getPrivacy(), user.getId());
+    }
+
+    @Transactional
+    public void updateVideoThumbnail(UUID uid, UpdateVideoThumbnailValidation thumbnail, User user) {
+        Video video = this.videoRepository.getVideoByUid(uid);
+        if (video == null) throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Video not found");
+        String oldThumbnail = video.getThumbnail();
+        if (!Objects.equals(video.getUser().getId(), user.getId())) throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "User not authorized to update video");
+
         try {
-            MimeType mimeType = mimeTypes.forName(contentType);
-            return mimeType.getExtension();
-        } catch (MimeTypeException e) {
-            return "";
+            Path imagePath = StoreUtils.save(publicDirPath, UUID.randomUUID().toString().replace("-", ""), thumbnail.getThumbnail());
+            video.setThumbnail(imagePath.getFileName().toString());
+            videoRepository.save(video);
+            publicDirPath.resolve(oldThumbnail).toFile().delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update video thumbnail");
+        }
+    }
+
+    @Transactional
+    public void deleteVideo(String uuid, User user) {
+        Video video = this.videoRepository.getVideoByUid(UUID.fromString(uuid));
+        if (video == null)
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Video not found");
+        if (!Objects.equals(video.getUser().getId(), user.getId()))
+            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "User not authorized to delete video");
+        int result = videoRepository.deleteVideoById(video.getId());
+        if (result <= 0)
+            throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete video");
+
+        publicDirPath.resolve(video.getThumbnail()).toFile().delete();
+        try {
+            FileUtils.deleteDirectory(videoDirPath.resolve(uuid).toFile());
+        } catch (IOException ignored) {
         }
     }
 }

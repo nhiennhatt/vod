@@ -48,9 +48,9 @@ public class Video {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Size(max = 45)
+    @Size(max = 50)
     @NotNull
-    @Column(name = "thumbnail", nullable = false, length = 45)
+    @Column(name = "thumbnail", nullable = false, length = 50)
     private String thumbnail;
 
     @NotNull
@@ -58,9 +58,9 @@ public class Video {
     @Column(name = "description", nullable = false)
     private String description;
 
-    @Size(max = 45)
+    @Size(max = 50)
     @NotNull
-    @Column(name = "file_name", nullable = false, length = 45)
+    @Column(name = "file_name", nullable = false, length = 50)
     private String fileName;
 
     @ColumnDefault("'PROCESSING'")
