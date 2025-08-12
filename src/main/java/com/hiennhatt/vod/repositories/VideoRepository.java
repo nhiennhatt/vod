@@ -16,10 +16,10 @@ import java.util.UUID;
 public interface VideoRepository extends JpaRepository<Video, Integer> {
     Video findVideoByUid(UUID uid);
 
-    @Query("SELECT new com.hiennhatt.vod.repositories.projections.VideoOverview(v.uid, v.title, v.privacy, v.status, v.thumbnail, new com.hiennhatt.vod.repositories.projections.UserOverview(v.user.username, v.user.userInform.firstName, v.user.userInform.lastName, v.user.userInform.avatar)) FROM Video v WHERE v.uid = :uid")
+    @Query("SELECT new com.hiennhatt.vod.repositories.projections.VideoOverview(v.uid, v.title, v.privacy, v.status, v.thumbnail, new com.hiennhatt.vod.repositories.projections.UserOverviewDTO(v.user.username, v.user.userInform.firstName, v.user.userInform.lastName, v.user.userInform.avatar)) FROM Video v WHERE v.uid = :uid")
     VideoOverview getVideoOverview(UUID uid);
 
-    @Query("SELECT new com.hiennhatt.vod.repositories.projections.VideoDetail(v.uid, v.title, v.description, v.status, v.privacy, v.fileName, v.thumbnail, new com.hiennhatt.vod.repositories.projections.UserOverview(v.user.username, v.user.userInform.firstName, v.user.userInform.lastName, v.user.userInform.avatar)) FROM Video v where v.uid = :uid")
+    @Query("SELECT new com.hiennhatt.vod.repositories.projections.VideoDetail(v.uid, v.title, v.description, v.status, v.privacy, v.fileName, v.thumbnail, new com.hiennhatt.vod.repositories.projections.UserOverviewDTO(v.user.username, v.user.userInform.firstName, v.user.userInform.lastName, v.user.userInform.avatar)) FROM Video v where v.uid = :uid")
     VideoDetail getVideoDetail(UUID uid);
 
     @Modifying

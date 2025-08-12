@@ -7,8 +7,11 @@ import com.hiennhatt.vod.repositories.HistoryRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
 import com.hiennhatt.vod.services.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -30,7 +33,7 @@ public class HistoryServiceImpl implements HistoryService {
         
         Video video = videoRepository.findVideoByUid(UUID.fromString(videoId));
         if (video == null) {
-            throw new IllegalArgumentException("Video not found with ID: " + videoId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
         }
         
         History history = new History();
