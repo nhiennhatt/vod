@@ -32,9 +32,9 @@ public class HistoryDTO {
         UserOverviewProjection userOverviewProjection = history.getVideo().getUser();
         UserOverviewDTO userOverviewDTO = new UserOverviewDTO(
             userOverviewProjection.getUsername(),
-            userOverviewProjection.getUserInformation().getFirstName(),
-            userOverviewProjection.getUserInformation().getLastName(),
-            userOverviewProjection.getUserInformation().getAvatar()
+            userOverviewProjection.getUserInform().getFirstName(),
+            userOverviewProjection.getUserInform().getLastName(),
+            userOverviewProjection.getUserInform().getAvatar()
         );
         video.setUser(userOverviewDTO);
     }
