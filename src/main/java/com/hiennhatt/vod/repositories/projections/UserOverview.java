@@ -7,7 +7,7 @@ import lombok.Getter;
 @Data
 @Getter
 @AllArgsConstructor
-public class UserOverviewDTO {
+public class UserOverview {
     private String username;
     private String firstName;
     private String lastName;

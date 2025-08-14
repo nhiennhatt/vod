@@ -36,4 +36,10 @@ public class CommentController {
     public void deleteComment(@PathVariable String uid, @AuthenticationPrincipal CustomUserDetails userDetails) {
         commentService.deleteComment(uid, userDetails.getUser());
     }
+
+    @GetMapping("/count/{videoId}")
+    @PreAuthorize("isAuthenticated()")
+    public long countCommentsByVideoId(@PathVariable String videoId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return commentService.countComments(UUID.fromString(videoId), userDetails.getUser());
+    }
 }

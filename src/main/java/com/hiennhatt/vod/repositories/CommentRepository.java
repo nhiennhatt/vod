@@ -19,4 +19,6 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
     @Query("SELECT c FROM Comment c WHERE c.video = :video and (c.status = 'ACTIVE' or c.user = :user) AND c.uid > :latestCommentId ORDER BY c.uid")
     List<CommentDTO> findNextCommentsInPublic(@NotNull Video video, @NotNull User user, @NotNull UUID latestCommentId);
+
+    long countCommentByVideoAndStatus(@NotNull Video video, @NotNull Comment.Status status);
 }

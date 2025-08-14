@@ -1,5 +1,6 @@
 package com.hiennhatt.vod.services.impl;
 
+import com.hiennhatt.vod.dtos.LikeDTO;
 import com.hiennhatt.vod.models.Like;
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.Video;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -82,7 +84,7 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public long getLikesCount(UUID videoId, User user) {
+    public long getLikesCount(UUID videoId) {
         try {
             Video video = videoRepository.findVideoByUid(videoId);
             if (video == null || video.getStatus() == Video.Status.INACTIVE)
@@ -92,5 +94,10 @@ public class LikeServiceImpl implements LikeService {
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid video id");
         }
+    }
+
+    @Override
+    public List<LikeDTO> getVideosLikedByUser(User user) {
+        return likeRepository.findLikesOfUser(user);
     }
 }

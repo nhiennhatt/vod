@@ -19,5 +19,5 @@ public class VideoOverview {
 
     private String thumbnail;
 
-    private UserOverviewDTO user;
+    private UserOverview user;
 }

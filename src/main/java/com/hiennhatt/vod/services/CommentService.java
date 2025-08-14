@@ -11,4 +11,5 @@ public interface CommentService {
     void saveComment(SaveCommentValidation saveComment, User user);
     List<CommentDTO> getComments(UUID videoId, UUID previousComment, User user);
     void deleteComment(String uid, User user);
+    long countComments(UUID videoId, User user);
 }

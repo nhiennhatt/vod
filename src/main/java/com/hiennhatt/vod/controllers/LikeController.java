@@ -2,6 +2,7 @@ package com.hiennhatt.vod.controllers;
 
 import com.hiennhatt.vod.dtos.CountLikeVideoDTO;
 import com.hiennhatt.vod.dtos.IsLikedVideoDTO;
+import com.hiennhatt.vod.dtos.LikeDTO;
 import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.services.LikeService;
 import com.hiennhatt.vod.validations.LikeVideoValidation;
@@ -11,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/likes")
@@ -41,7 +44,13 @@ public class LikeController {
     @GetMapping("/count")
     @PreAuthorize("isAuthenticated()")
     public CountLikeVideoDTO getCountLikeInVideo(@RequestParam @Validated @UUID String videoId, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        long result = likeService.getLikesCount(java.util.UUID.fromString(videoId), customUserDetails.getUser());
+        long result = likeService.getLikesCount(java.util.UUID.fromString(videoId));
         return new CountLikeVideoDTO(result);
+    }
+
+    @GetMapping("/liked")
+    @PreAuthorize("isAuthenticated()")
+    public List<LikeDTO> getLikedVideos(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return likeService.getVideosLikedByUser(customUserDetails.getUser());
     }
 }

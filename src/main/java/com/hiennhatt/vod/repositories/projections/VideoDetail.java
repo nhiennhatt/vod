@@ -16,5 +16,5 @@ public class VideoDetail {
     private Video.Privacy privacy;
     private String fileName;
     private String thumbnail;
-    private UserOverviewDTO user;
+    private UserOverview user;
 }

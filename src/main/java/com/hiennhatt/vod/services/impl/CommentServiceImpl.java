@@ -70,4 +70,14 @@ public class CommentServiceImpl implements CommentService {
 
         commentRepository.delete(comment);
     }
+
+    @Override
+    public long countComments(UUID videoId, User user) {
+        Video video = videoRepository.findVideoByUid(videoId);
+        if (video == null || video.getStatus() == Video.Status.INACTIVE)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
+        if (video.getPrivacy() == Video.Privacy.PRIVATE  && !user.getId().equals(video.getUser().getId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User not authorized to view comments on private video");
+        return commentRepository.countCommentByVideoAndStatus(video, Comment.Status.ACTIVE);
+    }
 }

@@ -2,7 +2,7 @@ package com.hiennhatt.vod.dtos;
 
 import com.hiennhatt.vod.models.Comment;
 import com.hiennhatt.vod.models.User;
-import com.hiennhatt.vod.repositories.projections.UserOverviewDTO;
+import com.hiennhatt.vod.repositories.projections.UserOverview;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +31,7 @@ public class CommentDTO {
     @Getter
     private Comment.Status status;
 
-    public UserOverviewDTO getUser() {
-        return new UserOverviewDTO(user.getUsername(), user.getUserInform().getFirstName(), user.getUserInform().getLastName(), user.getUserInform().getAvatar());
+    public UserOverview getUser() {
+        return new UserOverview(user.getUsername(), user.getUserInform().getFirstName(), user.getUserInform().getLastName(), user.getUserInform().getAvatar());
     }
 }
