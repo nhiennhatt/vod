@@ -7,8 +7,8 @@ import com.hiennhatt.vod.models.VideoCategory;
 import com.hiennhatt.vod.repositories.CategoryRepository;
 import com.hiennhatt.vod.repositories.VideoCategoryRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
-import com.hiennhatt.vod.repositories.projections.VideoDetail;
-import com.hiennhatt.vod.repositories.projections.VideoOverview;
+import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
+import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
 import com.hiennhatt.vod.services.VideoService;
 import com.hiennhatt.vod.utils.StoreUtils;
 import com.hiennhatt.vod.utils.ffmpeg.FFmpegUtils;
@@ -102,12 +102,15 @@ public class VideoServiceImpl implements VideoService {
             return video;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload video");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload video");
         }
     }
 
-    public VideoOverview getVideoOverview(String uuid) {
-        return videoRepository.getVideoOverview(UUID.fromString(uuid));
+    public VideoOverviewProjection getVideoOverview(String uuid) {
+        VideoOverviewProjection video = videoRepository.getVideoOverview(UUID.fromString(uuid));
+        if (video == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
+        return video;
     }
 
     private Video generateVideoInstance(UploadVideoValidation uploadVideoBody, User user, String uid, String imagePath) {
@@ -123,8 +126,8 @@ public class VideoServiceImpl implements VideoService {
         return video;
     }
 
-    public VideoDetail getVideo(String uuid) {
-        VideoDetail video = videoRepository.getVideoDetail(UUID.fromString(uuid));
+    public VideoDetailProjection getVideo(String uuid) {
+        VideoDetailProjection video = videoRepository.getVideoDetail(UUID.fromString(uuid));
         if (video == null) {
             throw new IllegalArgumentException("Video not found with ID: " + uuid);
         }

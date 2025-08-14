@@ -1,14 +1,12 @@
 package com.hiennhatt.vod.dtos;
 
 import com.hiennhatt.vod.models.Video;
-import com.hiennhatt.vod.repositories.projections.VideoOverview;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.UUID;
 
-@Setter
 @Getter
 public class VideoOverviewDTO {
     private UUID uid;
@@ -30,5 +28,4 @@ public class VideoOverviewDTO {
         privacy = videoOverview.getPrivacy();
         user = new UserOverviewDTO(videoOverview.getUser());
     }
-    public VideoOverviewDTO(){}
 }

@@ -4,12 +4,13 @@ import com.hiennhatt.vod.models.Video;
 
 import java.util.UUID;
 
-public interface VideoOverviewProjection {
+public interface VideoDetailProjection {
     UUID getUid();
     String getTitle();
-    String getThumbnail();
-
-    Video.Privacy getPrivacy();
+    String getDescription();
     Video.Status getStatus();
+    Video.Privacy getPrivacy();
+    String getFileName();
+    String getThumbnail();
     UserOverviewProjection getUser();
 }

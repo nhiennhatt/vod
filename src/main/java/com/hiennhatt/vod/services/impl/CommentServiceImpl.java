@@ -54,9 +54,9 @@ public class CommentServiceImpl implements CommentService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authorized to view comments on private video");
 
         if (previousComment == null)
-            return commentRepository.findCommentsInPublic(video, user);
+            return commentRepository.findCommentsInPublic(video, user).stream().map(CommentDTO::new).toList();
 
-        return commentRepository.findNextCommentsInPublic(video, user, previousComment);
+        return commentRepository.findNextCommentsInPublic(video, user, previousComment).stream().map(CommentDTO::new).toList();
     }
 
     @Override

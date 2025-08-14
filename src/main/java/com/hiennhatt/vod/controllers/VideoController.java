@@ -1,10 +1,8 @@
 package com.hiennhatt.vod.controllers;
 
 import com.hiennhatt.vod.models.CustomUserDetails;
-import com.hiennhatt.vod.models.Video;
-import com.hiennhatt.vod.models.VideoCategory;
-import com.hiennhatt.vod.repositories.projections.VideoDetail;
-import com.hiennhatt.vod.repositories.projections.VideoOverview;
+import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
+import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
 import com.hiennhatt.vod.services.VideoService;
 import com.hiennhatt.vod.validations.UpdateVideoThumbnailValidation;
 import com.hiennhatt.vod.validations.UpdateVideoValidation;
@@ -35,14 +33,14 @@ public class VideoController {
     }
 
     @GetMapping("/{uid}/overview")
-    @PostAuthorize("returnObject.privacy != returnObject.privacy.PRIVATE || (isAuthenticated() && principal.username == returnObject.user.username)")
-    public VideoOverview getVideoOverview(@PathVariable String uid) {
+    @PostAuthorize("returnObject.getPrivacy() != returnObject.privacy.PRIVATE || (isAuthenticated() && principal.username == returnObject.getUser().username)")
+    public VideoOverviewProjection getVideoOverview(@PathVariable String uid) {
         return this.videoService.getVideoOverview(uid);
     }
 
     @GetMapping("/{uid}")
     @PostAuthorize("returnObject.privacy != returnObject.privacy.PRIVATE || (isAuthenticated() && principal.username == returnObject.user.username)")
-    public VideoDetail getVideo(@PathVariable String uid) {
+    public VideoDetailProjection getVideo(@PathVariable String uid) {
         return this.videoService.getVideo(uid);
     }
 

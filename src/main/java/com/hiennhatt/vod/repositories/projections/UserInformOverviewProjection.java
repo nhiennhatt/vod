@@ -1,6 +1,6 @@
 package com.hiennhatt.vod.repositories.projections;
 
-public interface UserInformationProjection {
+public interface UserInformOverviewProjection {
     String getFirstName();
     String getLastName();
     String getAvatar();
