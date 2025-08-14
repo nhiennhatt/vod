@@ -1,6 +1,7 @@
 package com.hiennhatt.vod.controllers;
 
 import com.hiennhatt.vod.dtos.CommentDTO;
+import com.hiennhatt.vod.dtos.CountCommentDTO;
 import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.services.CommentService;
 import com.hiennhatt.vod.validations.SaveCommentValidation;
@@ -39,7 +40,7 @@ public class CommentController {
 
     @GetMapping("/count/{videoId}")
     @PreAuthorize("isAuthenticated()")
-    public long countCommentsByVideoId(@PathVariable String videoId, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return commentService.countComments(UUID.fromString(videoId), userDetails.getUser());
+    public CountCommentDTO countCommentsByVideoId(@PathVariable String videoId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return new CountCommentDTO(commentService.countComments(UUID.fromString(videoId), userDetails.getUser()));
     }
 }
