@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/history")
@@ -29,5 +30,11 @@ public class HistoryController {
     @PreAuthorize("isAuthenticated()")
     public List<HistoryDTO> getHistory(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return historyService.getPersonalHistories(customUserDetails.getUser());
+    }
+
+    @DeleteMapping("/{uid}")
+    @PreAuthorize("isAuthenticated()")
+    public void deleteHistoryRecord(@PathVariable("uid") UUID historyId, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        historyService.deleteHistoryRecord(historyId, customUserDetails.getUser());
     }
 }

@@ -2,7 +2,6 @@ package com.hiennhatt.vod.dtos;
 
 import com.hiennhatt.vod.models.History;
 import com.hiennhatt.vod.repositories.projections.HistoryProjection;
-import com.hiennhatt.vod.repositories.projections.UserOverviewProjection;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -23,19 +22,6 @@ public class HistoryDTO {
     public HistoryDTO(HistoryProjection history) {
         uid = history.getUid();
         createdOn = history.getCreatedOn();
-        video = new VideoOverviewDTO();
-        video.setUid(history.getVideo().getUid());
-        video.setPrivacy(history.getVideo().getPrivacy());
-        video.setStatus(history.getVideo().getStatus());
-        video.setTitle(history.getVideo().getTitle());
-
-        UserOverviewProjection userOverviewProjection = history.getVideo().getUser();
-        UserOverviewDTO userOverviewDTO = new UserOverviewDTO(
-            userOverviewProjection.getUsername(),
-            userOverviewProjection.getUserInform().getFirstName(),
-            userOverviewProjection.getUserInform().getLastName(),
-            userOverviewProjection.getUserInform().getAvatar()
-        );
-        video.setUser(userOverviewDTO);
+        video = new VideoOverviewDTO(history.getVideo());
     }
 }

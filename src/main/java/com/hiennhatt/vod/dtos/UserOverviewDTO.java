@@ -1,6 +1,7 @@
 package com.hiennhatt.vod.dtos;
 
 import com.hiennhatt.vod.models.User;
+import com.hiennhatt.vod.repositories.projections.UserOverviewProjection;
 import lombok.Getter;
 
 @Getter
@@ -17,6 +18,13 @@ public class UserOverviewDTO {
     }
 
     public UserOverviewDTO(User user) {
+        this.username = user.getUsername();
+        this.firstName = user.getUserInform().getFirstName();
+        this.lastName = user.getUserInform().getLastName();
+        this.avatar = user.getUserInform().getAvatar();
+    }
+
+    public UserOverviewDTO(UserOverviewProjection user) {
         this.username = user.getUsername();
         this.firstName = user.getUserInform().getFirstName();
         this.lastName = user.getUserInform().getLastName();

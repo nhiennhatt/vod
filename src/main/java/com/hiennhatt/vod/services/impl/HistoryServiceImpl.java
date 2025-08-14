@@ -29,7 +29,7 @@ public class HistoryServiceImpl implements HistoryService {
     @Transactional
     public void saveHistory(String videoId, User user) {
         if (user == null) {
-            return; // User not provided, don't save history
+            return;
         }
 
         Video video = videoRepository.findVideoByUid(UUID.fromString(videoId));
@@ -49,5 +49,16 @@ public class HistoryServiceImpl implements HistoryService {
     @Transactional
     public List<HistoryDTO> getPersonalHistories(User user) {
         return historyRepository.getHistoryByUser(user).stream().map(HistoryDTO::new).toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteHistoryRecord(UUID historyId, User user) {
+        History history = historyRepository.findHistoryByUid(historyId);
+        if (history == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "History not found");
+        if (!history.getUser().getId().equals(user.getId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        historyRepository.delete(history);
     }
 }
