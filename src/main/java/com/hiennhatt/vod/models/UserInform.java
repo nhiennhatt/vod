@@ -1,12 +1,12 @@
 package com.hiennhatt.vod.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "user_informs")
 @DynamicInsert
+@DynamicUpdate
 public class UserInform {
     @Id
     @Column(name = "id", nullable = false)
