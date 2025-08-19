@@ -5,6 +5,7 @@ import com.hiennhatt.vod.repositories.projections.PublicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.SelfUserInformProjection;
 import com.hiennhatt.vod.services.UserService;
 import com.hiennhatt.vod.validations.RegisterUserValidation;
+import com.hiennhatt.vod.validations.UpdateAvatarValidation;
 import com.hiennhatt.vod.validations.UpdateProfileValidation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,5 +41,11 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public void updateProfile(@RequestBody @Valid UpdateProfileValidation body, @AuthenticationPrincipal CustomUserDetails user) {
         userService.updateProfile(body, user.getUser());
+    }
+
+    @PostMapping("/avatar")
+    @PreAuthorize("isAuthenticated()")
+    public void updateAvatar(@ModelAttribute @Valid UpdateAvatarValidation body, @AuthenticationPrincipal CustomUserDetails user) {
+        userService.updateAvatar(body.getAvatar(), user.getUser());
     }
 }

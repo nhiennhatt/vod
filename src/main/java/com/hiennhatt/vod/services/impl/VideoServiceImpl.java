@@ -18,7 +18,6 @@ import com.hiennhatt.vod.validations.UpdateVideoValidation;
 import com.hiennhatt.vod.validations.UploadVideoValidation;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -49,8 +48,8 @@ public class VideoServiceImpl implements VideoService {
     private VideoCategoryRepository videoCategoryRepository;
 
     public VideoServiceImpl(@Autowired Environment env) {
-        tempDirPath = Path.of(env.getProperty("uploadedDir", "")).resolve("temp/");
-        publicDirPath = Path.of(env.getProperty("uploadedDir", "")).resolve("public/");
+        tempDirPath = Path.of(env.getProperty("uploadedDir", "classpath:uploadDir/")).resolve("temp/");
+        publicDirPath = Path.of(env.getProperty("uploadedDir", "classpath:uploadDir/")).resolve("public/");
         videoDirPath = publicDirPath.resolve("video/");
 
         try {
@@ -66,7 +65,7 @@ public class VideoServiceImpl implements VideoService {
     @Transactional
     public Video uploadVideo(UploadVideoValidation uploadVideoBody, User user) {
         String uid = UUID.randomUUID().toString();
-        String thumbnailUid = StoreUtils.generateUidForThumbnail();
+        String thumbnailUid = StoreUtils.generateUid();
 
         try {
             Path imagePath = StoreUtils.save(publicDirPath, thumbnailUid, uploadVideoBody.getThumbnail());

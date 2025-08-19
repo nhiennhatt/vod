@@ -7,15 +7,24 @@ import com.hiennhatt.vod.repositories.UserRepository;
 import com.hiennhatt.vod.repositories.projections.PublicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.SelfUserInformProjection;
 import com.hiennhatt.vod.services.UserService;
+import com.hiennhatt.vod.utils.StoreUtils;
 import com.hiennhatt.vod.validations.RegisterUserValidation;
 import com.hiennhatt.vod.validations.UpdateProfileValidation;
+import jakarta.annotation.PostConstruct;
+import org.apache.tika.mime.MimeTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 
 @Service
@@ -26,6 +35,19 @@ public class UserServiceImpl implements UserService {
     private UserInformRepository userInformRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private Environment env;
+    private Path uploadDir;
+
+    @PostConstruct
+    public void init() {
+        String uploadDirString = env.getProperty("uploadedDir", "classpath:uploadDir/");
+        uploadDir = Paths.get(uploadDirString).resolve("avatars/");
+        try {
+            Files.createDirectories(uploadDir);
+        } catch (IOException e) {
+        }
+    }
 
     @Override
     @Transactional
@@ -89,5 +111,32 @@ public class UserServiceImpl implements UserService {
         userInform.setDescription(updateProfile.getDescription());
         userInform.setDateOfBirth(updateProfile.getDateOfBirth());
         userInformRepository.save(userInform);
+    }
+
+    private UserInform createUserInformFrom(User user) {
+        UserInform userInform = new UserInform();
+        userInform.setUser(user);
+        userInformRepository.save(userInform);
+        return userInform;
+    }
+
+    @Override
+    @Transactional
+    public void updateAvatar(MultipartFile avatar, User user) {
+        try {
+            Path savedPath = StoreUtils.save(uploadDir, StoreUtils.generateUid(), avatar);
+            UserInform inform = user.getUserInform();
+            if (inform == null) {
+                inform = createUserInformFrom(user);
+            }
+            inform.setAvatar(savedPath.getFileName().toString());
+            userInformRepository.save(inform);
+        }
+        catch (MimeTypeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid mime type");
+        }
+        catch (IOException e) {
+            throw new  ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

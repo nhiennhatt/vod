@@ -25,7 +25,7 @@ public class StoreUtils {
         return save(directory, fileName, file, true);
     }
 
-    public static String generateUidForThumbnail() {
+    public static String generateUid() {
         return UUID.randomUUID().toString().replaceAll("-", "");
     }
 }
