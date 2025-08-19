@@ -18,7 +18,7 @@ class IsImageValidator implements jakarta.validation.ConstraintValidator<IsImage
 
     @Override
     public boolean isValid(MultipartFile value, ConstraintValidatorContext context) {
-        return Objects.requireNonNull(value.getContentType()).startsWith("image/");
+        return Objects.requireNonNull(Objects.requireNonNull(value).getContentType()).startsWith("image/");
     }
 }
 

@@ -19,6 +19,7 @@ import com.hiennhatt.vod.validations.UploadVideoValidation;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,14 +48,10 @@ public class VideoServiceImpl implements VideoService {
     @Autowired
     private VideoCategoryRepository videoCategoryRepository;
 
-    public VideoServiceImpl(
-        @Value("${tempDir}") String tempDir,
-        @Value("${publicDir}") String publicDir,
-        @Value("${videoDir}") String videoDir
-    ) {
-        tempDirPath = Path.of(tempDir);
-        publicDirPath = Path.of(publicDir);
-        videoDirPath = Path.of(videoDir);
+    public VideoServiceImpl(@Autowired Environment env) {
+        tempDirPath = Path.of(env.getProperty("uploadedDir", "")).resolve("temp/");
+        publicDirPath = Path.of(env.getProperty("uploadedDir", "")).resolve("public/");
+        videoDirPath = publicDirPath.resolve("video/");
 
         try {
             Files.createDirectories(publicDirPath);
