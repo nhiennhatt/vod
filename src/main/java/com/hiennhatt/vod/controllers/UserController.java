@@ -7,6 +7,7 @@ import com.hiennhatt.vod.services.UserService;
 import com.hiennhatt.vod.validations.RegisterUserValidation;
 import com.hiennhatt.vod.validations.UpdateAvatarValidation;
 import com.hiennhatt.vod.validations.UpdateProfileValidation;
+import com.hiennhatt.vod.validations.UploadCoverValidation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,5 +48,11 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public void updateAvatar(@ModelAttribute @Valid UpdateAvatarValidation body, @AuthenticationPrincipal CustomUserDetails user) {
         userService.updateAvatar(body.getAvatar(), user.getUser());
+    }
+
+    @PostMapping("/cover")
+    @PreAuthorize("isAuthenticated()")
+    public void uploadCover(@ModelAttribute @Valid UploadCoverValidation body, @AuthenticationPrincipal CustomUserDetails user) {
+        userService.updateCoverImage(body.getFile(), user.getUser());
     }
 }

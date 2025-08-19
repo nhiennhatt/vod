@@ -37,14 +37,17 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private Environment env;
-    private Path uploadDir;
+    private Path uploadAvatarDir;
+    private Path uploadCoverDir;
 
     @PostConstruct
     public void init() {
         String uploadDirString = env.getProperty("uploadedDir", "classpath:uploadDir/");
-        uploadDir = Paths.get(uploadDirString).resolve("avatars/");
+        uploadAvatarDir = Paths.get(uploadDirString).resolve("avatars/");
+        uploadCoverDir = Paths.get(uploadDirString).resolve("covers/");
         try {
-            Files.createDirectories(uploadDir);
+            Files.createDirectories(uploadAvatarDir);
+            Files.createDirectories(uploadCoverDir);
         } catch (IOException e) {
         }
     }
@@ -124,12 +127,32 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updateAvatar(MultipartFile avatar, User user) {
         try {
-            Path savedPath = StoreUtils.save(uploadDir, StoreUtils.generateUid(), avatar);
+            Path savedPath = StoreUtils.save(uploadAvatarDir, StoreUtils.generateUid(), avatar);
             UserInform inform = user.getUserInform();
             if (inform == null) {
                 inform = createUserInformFrom(user);
             }
             inform.setAvatar(savedPath.getFileName().toString());
+            userInformRepository.save(inform);
+        }
+        catch (MimeTypeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid mime type");
+        }
+        catch (IOException e) {
+            throw new  ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateCoverImage(MultipartFile cover, User user) {
+        try {
+            Path savedPath = StoreUtils.save(uploadCoverDir, StoreUtils.generateUid(), cover);
+            UserInform inform = user.getUserInform();
+            if (inform == null) {
+                inform = createUserInformFrom(user);
+            }
+            inform.setCoverImg(savedPath.getFileName().toString());
             userInformRepository.save(inform);
         }
         catch (MimeTypeException e) {

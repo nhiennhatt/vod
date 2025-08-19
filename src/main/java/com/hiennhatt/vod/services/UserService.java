@@ -13,4 +13,5 @@ public interface UserService {
     SelfUserInformProjection getUserInformByUser(User user);
     void updateProfile(UpdateProfileValidation newProfile, User user);
     void updateAvatar(MultipartFile avatar, User user);
+    void updateCoverImage(MultipartFile cover, User user);
 }
