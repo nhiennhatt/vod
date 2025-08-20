@@ -2,6 +2,7 @@ package com.hiennhatt.vod.services.impl;
 
 import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.repositories.UserRepository;
+import com.hiennhatt.vod.repositories.projections.AuthorizationUserProjection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,7 +16,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        com.hiennhatt.vod.models.User user = userRepository.findByUsername(username);
+        AuthorizationUserProjection user = userRepository.findAuthorizationUserByUsername(username);
         if (user == null) throw new UsernameNotFoundException("User not found");
         return new CustomUserDetails(user);
     }

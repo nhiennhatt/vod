@@ -3,6 +3,7 @@ package com.hiennhatt.vod.services.impl;
 import com.hiennhatt.vod.dtos.GainTokenDTO;
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.repositories.UserRepository;
+import com.hiennhatt.vod.repositories.projections.AuthorizationUserProjection;
 import com.hiennhatt.vod.services.TokenService;
 import com.hiennhatt.vod.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class TokenServiceImpl implements TokenService {
     @Autowired
     private Environment env;
 
-    private GainTokenDTO generateToken(User user) {
+    private GainTokenDTO generateToken(AuthorizationUserProjection user) {
         Instant now = Instant.now();
         JwtClaimsSet accessTokenClaimSet = JwtClaimsSet.builder()
             .issuedAt(now)
@@ -54,7 +55,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public GainTokenDTO gainToken(String username, String password) {
-        User user = userRepository.findByUsername(username);
+        AuthorizationUserProjection user = userRepository.findAuthorizationUserByUsername(username);
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) throw new ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid username or password");
         return this.generateToken(user);
     }
@@ -63,7 +64,7 @@ public class TokenServiceImpl implements TokenService {
     public GainTokenDTO refreshToken(String refreshToken) {
         Jwt jwt = jwtRefreshTokenUtil.jwtDecoder().decode(refreshToken);
         String username = (String) jwt.getClaims().get("sub");
-        User user = userRepository.findByUsername(username);
+        AuthorizationUserProjection user = userRepository.findAuthorizationUserByUsername(username);
         if (user == null) throw new ResponseStatusException(HttpStatusCode.valueOf(401));
         return this.generateToken(user);
     }
