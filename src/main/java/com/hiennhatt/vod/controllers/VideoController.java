@@ -3,7 +3,9 @@ package com.hiennhatt.vod.controllers;
 import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
+import com.hiennhatt.vod.services.VideoCategoryService;
 import com.hiennhatt.vod.services.VideoService;
+import com.hiennhatt.vod.validations.AddCategoriesToVideoValidation;
 import com.hiennhatt.vod.validations.UpdateVideoThumbnailValidation;
 import com.hiennhatt.vod.validations.UpdateVideoValidation;
 import com.hiennhatt.vod.validations.UploadVideoValidation;
@@ -24,6 +26,8 @@ import java.util.UUID;
 public class VideoController {
     @Autowired
     private VideoService videoService;
+    @Autowired
+    private VideoCategoryService videoCategoryService;
 
     @PreAuthorize("isAuthenticated() and @activeUserAccessManager.isActiveUser(authentication)")
     @PostMapping(value = "/", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -46,7 +50,7 @@ public class VideoController {
 
     @PutMapping("/{uid}")
     @PreAuthorize("isAuthenticated()")
-    public void updateVideo(@PathVariable String uid ,@RequestBody @Validated UpdateVideoValidation updateVideoValidation, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public void updateVideo(@PathVariable String uid, @RequestBody @Validated UpdateVideoValidation updateVideoValidation, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         this.videoService.updateVideo(UUID.fromString(uid), updateVideoValidation, customUserDetails.getUser());
     }
 
@@ -60,5 +64,11 @@ public class VideoController {
     @PreAuthorize("isAuthenticated()")
     public void deleteVideo(@PathVariable String uid, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         this.videoService.deleteVideo(uid, customUserDetails.getUser());
+    }
+
+    @PostMapping("{videoUid}/categories")
+    @PreAuthorize("isAuthenticated()")
+    public void addCategoriesToVideo(@RequestBody @Valid AddCategoriesToVideoValidation body, @AuthenticationPrincipal CustomUserDetails customUserDetails, @PathVariable @Valid @org.hibernate.validator.constraints.UUID String videoUid) {
+        videoCategoryService.addCategoriesToVideo(body.getCategories(), videoUid, customUserDetails.getUser());
     }
 }

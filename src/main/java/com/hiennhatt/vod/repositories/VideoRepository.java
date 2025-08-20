@@ -1,6 +1,7 @@
 package com.hiennhatt.vod.repositories;
 
 import com.hiennhatt.vod.models.Video;
+import com.hiennhatt.vod.repositories.projections.IdentifiableVideoProjection;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +21,8 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
 
     @Query("SELECT v FROM Video v where v.uid = :uid")
     VideoDetailProjection getVideoDetail(UUID uid);
+
+    IdentifiableVideoProjection findIdentifiableVideoProjectionByUid(UUID uid);
 
     @Modifying
     @Query("UPDATE Video v SET v.title = :title, v.description = :description, v.privacy = :privacy WHERE v.uid = :uid AND v.user.id = :userid")

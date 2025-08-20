@@ -86,13 +86,13 @@ public class VideoServiceImpl implements VideoService {
             videoRepository.save(video);
             List<VideoCategory> categories = uploadVideoBody.getCategories().stream().map(item -> {
                 Category category = categoryRepository.findCategoryBySlug(item);
-                if (category == null) throw new RuntimeException();
+                if (category == null) return null;
 
                 VideoCategory videoCategory = new VideoCategory();
                 videoCategory.setVideo(video);
                 videoCategory.setCategory(category);
                 return videoCategory;
-            }).toList();
+            }).filter(Objects::nonNull).toList();
             videoCategoryRepository.saveAll(categories);
             tempVideoPath.toFile().delete();
             return video;

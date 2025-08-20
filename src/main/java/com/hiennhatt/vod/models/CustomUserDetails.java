@@ -1,7 +1,6 @@
 package com.hiennhatt.vod.models;
 
 import com.hiennhatt.vod.repositories.projections.AuthorizationUserProjection;
-import com.hiennhatt.vod.utils.AuthorizationUserProjectionToUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -11,7 +10,7 @@ import java.util.Set;
 public class CustomUserDetails implements org.springframework.security.core.userdetails.UserDetails{
     private final User user;
     public CustomUserDetails(AuthorizationUserProjection authorizationUserProjection) {
-        this.user = AuthorizationUserProjectionToUser.toUser(authorizationUserProjection);
+        this.user = authorizationUserProjection.toUser();
     }
 
     @Override
