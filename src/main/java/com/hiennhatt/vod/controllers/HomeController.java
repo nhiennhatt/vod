@@ -9,7 +9,7 @@ import java.util.Map;
 @RequestMapping("/")
 @RestController
 public class HomeController {
-    @GetMapping("/")
+    @GetMapping("")
     public Map<String, String> home() {
         return Map.of("message", "Welcome to VOD");
     }

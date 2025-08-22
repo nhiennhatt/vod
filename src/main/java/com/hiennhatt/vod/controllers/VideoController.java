@@ -30,7 +30,7 @@ public class VideoController {
     private VideoCategoryService videoCategoryService;
 
     @PreAuthorize("isAuthenticated() and @activeUserAccessManager.isActiveUser(authentication)")
-    @PostMapping(value = "/", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(code = HttpStatus.CREATED)
     public void uploadVideo(@ModelAttribute @Valid UploadVideoValidation body, @AuthenticationPrincipal CustomUserDetails user) {
         this.videoService.uploadVideo(body, user.getUser());

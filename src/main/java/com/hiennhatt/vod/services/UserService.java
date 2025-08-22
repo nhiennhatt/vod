@@ -1,5 +1,6 @@
 package com.hiennhatt.vod.services;
 
+import com.hiennhatt.vod.dtos.BasicUserInformDTO;
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.repositories.projections.PublicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.SelfUserInformProjection;
@@ -14,4 +15,5 @@ public interface UserService {
     void updateProfile(UpdateProfileValidation newProfile, User user);
     void updateAvatar(MultipartFile avatar, User user);
     void updateCoverImage(MultipartFile cover, User user);
+    BasicUserInformDTO getBasicUserInformDTO(User user);
 }

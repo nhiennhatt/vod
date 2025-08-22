@@ -21,20 +21,20 @@ public class LikeController {
     @Autowired
     private LikeService likeService;
 
-    @PostMapping("/")
+    @PostMapping("")
     @ResponseStatus(code = org.springframework.http.HttpStatus.CREATED)
     public void likeVideo(@RequestBody @Validated LikeVideoValidation body, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         likeService.likeVideo(body.getVideoId(), customUserDetails.getUser());
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     @PreAuthorize("isAuthenticated()")
     public IsLikedVideoDTO getLikes(@RequestParam @Validated @UUID String videoId, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         boolean result = likeService.isVideoLiked(java.util.UUID.fromString(videoId), customUserDetails.getUser());
         return new IsLikedVideoDTO(result);
     }
 
-    @DeleteMapping("/")
+    @DeleteMapping("")
     @PreAuthorize("isAuthenticated()")
     @ResponseStatus(code = org.springframework.http.HttpStatus.NO_CONTENT)
     public void unlikeVideo(@RequestBody @Validated LikeVideoValidation body, @AuthenticationPrincipal CustomUserDetails customUserDetails) {

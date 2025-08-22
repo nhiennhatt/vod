@@ -20,7 +20,7 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
-    @PostMapping("/")
+    @PostMapping("")
     @PreAuthorize("isAuthenticated()")
     public void saveComment(@RequestBody @Validated SaveCommentValidation body, @AuthenticationPrincipal CustomUserDetails userDetails) {
         this.commentService.saveComment(body, userDetails.getUser());

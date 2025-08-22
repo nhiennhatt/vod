@@ -20,13 +20,13 @@ public class HistoryController {
     @Autowired
     private HistoryService historyService;
 
-    @PostMapping("/")
+    @PostMapping("")
     @PreAuthorize("isAuthenticated()")
     public void saveHistory(@RequestBody @Valid SaveHistoryValidation body, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         historyService.saveHistory(body.getVideoId(), customUserDetails.getUser());
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     @PreAuthorize("isAuthenticated()")
     public List<HistoryDTO> getHistory(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return historyService.getPersonalHistories(customUserDetails.getUser());

@@ -1,9 +1,11 @@
 package com.hiennhatt.vod.services.impl;
 
+import com.hiennhatt.vod.dtos.BasicUserInformDTO;
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.UserInform;
 import com.hiennhatt.vod.repositories.UserInformRepository;
 import com.hiennhatt.vod.repositories.UserRepository;
+import com.hiennhatt.vod.repositories.projections.BasicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.PublicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.SelfUserInformProjection;
 import com.hiennhatt.vod.services.UserService;
@@ -55,6 +57,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void registerUser(RegisterUserValidation registerUser) {
+        if (userRepository.existsUserByUsername(registerUser.getUsername()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+
+        if (userRepository.existsUserByEmail(registerUser.getEmail()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+
         User user = registerUser.toUser();
         user.setRole(User.Role.ROLE_USER);
         user.setPassword(this.passwordEncoder.encode(user.getPassword()));
@@ -161,5 +169,11 @@ public class UserServiceImpl implements UserService {
         catch (IOException e) {
             throw new  ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Override
+    public BasicUserInformDTO getBasicUserInformDTO(User user) {
+        BasicUserInformProjection basicUserInform = userInformRepository.findUserInformProjectionByUser(user);
+        return new BasicUserInformDTO(user, basicUserInform);
     }
 }

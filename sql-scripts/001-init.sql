@@ -5,8 +5,8 @@ use vod;
 CREATE TABLE `users`
 (
     `id`         INTEGER AUTO_INCREMENT UNIQUE                      NOT NULL,
-    `username`   VARCHAR(255)                                       NOT NULL,
-    `email`      VARCHAR(255)                                       NOT NULL,
+    `username`   VARCHAR(255)                                       NOT NULL UNIQUE ,
+    `email`      VARCHAR(255)                                       NOT NULL UNIQUE ,
     `password`   VARCHAR(255)                                       NOT NULL,
     `status`     ENUM ('ACTIVE', 'INACTIVE', 'DELETED')             NOT NULL DEFAULT 'ACTIVE',
     `isVerified` BOOLEAN                                            NOT NULL DEFAULT false,

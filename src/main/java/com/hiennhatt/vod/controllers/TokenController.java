@@ -21,7 +21,7 @@ public class TokenController {
     @Autowired
     private TokenService tokenService;
 
-    @PostMapping("/")
+    @PostMapping("")
     @Operation(summary = "Generate token", description = "Generate token for user", responses = {@ApiResponse(content = {@Content(schema = @Schema(implementation = GainTokenDTO.class))})})
     public GainTokenDTO getToken(@RequestBody @Valid GainTokenValidation body) {
         return this.tokenService.gainToken(body.getUsername(), body.getPassword());

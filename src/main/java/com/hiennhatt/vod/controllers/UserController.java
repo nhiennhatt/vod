@@ -1,5 +1,6 @@
 package com.hiennhatt.vod.controllers;
 
+import com.hiennhatt.vod.dtos.BasicUserInformDTO;
 import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.repositories.projections.PublicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.SelfUserInformProjection;
@@ -21,7 +22,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/")
+    @PostMapping("")
     @ResponseStatus(code = HttpStatus.CREATED)
     public void registerUser(@RequestBody RegisterUserValidation body) {
         this.userService.registerUser(body);
@@ -34,11 +35,17 @@ public class UserController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
+    public BasicUserInformDTO getBasicUserInform(@AuthenticationPrincipal CustomUserDetails user) {
+        return userService.getBasicUserInformDTO(user.getUser());
+    }
+
+    @GetMapping("/me/details")
+    @PreAuthorize("isAuthenticated()")
     public SelfUserInformProjection getCurrentUserInform(@AuthenticationPrincipal CustomUserDetails user) {
         return userService.getUserInformByUser(user.getUser());
     }
 
-    @PutMapping("/")
+    @PutMapping("")
     @PreAuthorize("isAuthenticated()")
     public void updateProfile(@RequestBody @Valid UpdateProfileValidation body, @AuthenticationPrincipal CustomUserDetails user) {
         userService.updateProfile(body, user.getUser());

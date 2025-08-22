@@ -2,6 +2,7 @@ package com.hiennhatt.vod.repositories;
 
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.UserInform;
+import com.hiennhatt.vod.repositories.projections.BasicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.PublicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.SelfUserInformProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,5 @@ public interface UserInformRepository extends JpaRepository<UserInform, Integer>
     UserInform findUserInformByUser(User user);
     PublicUserInformProjection findPublicUserInformProjectionByUserUsername(String username);
     SelfUserInformProjection findSelfUserInformProjectionByUser(User user);
+    BasicUserInformProjection findUserInformProjectionByUser(User user);
 }
