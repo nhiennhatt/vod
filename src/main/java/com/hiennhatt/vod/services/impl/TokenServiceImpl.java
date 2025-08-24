@@ -1,18 +1,20 @@
 package com.hiennhatt.vod.services.impl;
 
 import com.hiennhatt.vod.dtos.GainTokenDTO;
-import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.repositories.UserRepository;
 import com.hiennhatt.vod.repositories.projections.AuthorizationUserProjection;
 import com.hiennhatt.vod.services.TokenService;
+import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import com.hiennhatt.vod.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -56,7 +58,8 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public GainTokenDTO gainToken(String username, String password) {
         AuthorizationUserProjection user = userRepository.findAuthorizationUserByUsername(username);
-        if (user == null || !passwordEncoder.matches(password, user.getPassword())) throw new ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid username or password");
+        if (user == null || !passwordEncoder.matches(password, user.getPassword()))
+            throw new HTTPResponseStatusException("Invalid username or password", "WRONG_USER_INFORM", HttpStatus.UNAUTHORIZED, null);
         return this.generateToken(user);
     }
 
@@ -65,7 +68,7 @@ public class TokenServiceImpl implements TokenService {
         Jwt jwt = jwtRefreshTokenUtil.jwtDecoder().decode(refreshToken);
         String username = (String) jwt.getClaims().get("sub");
         AuthorizationUserProjection user = userRepository.findAuthorizationUserByUsername(username);
-        if (user == null) throw new ResponseStatusException(HttpStatusCode.valueOf(401));
+        if (user == null) throw new HTTPResponseStatusException("Invalid refresh token", "INVALID_TOKEN", HttpStatus.valueOf(401), null);
         return this.generateToken(user);
     }
 }

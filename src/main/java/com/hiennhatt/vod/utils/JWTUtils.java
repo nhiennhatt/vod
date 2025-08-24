@@ -3,11 +3,8 @@ package com.hiennhatt.vod.utils;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.*;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
@@ -21,6 +18,7 @@ import java.util.Base64;
 public class JWTUtils {
     private final String privateKey;
     private final String publicKey;
+    
     public JWTUtils(String privateKey, String publicKey) {
         this.privateKey = privateKey;
         this.publicKey = publicKey;
@@ -28,7 +26,37 @@ public class JWTUtils {
 
     public JwtDecoder jwtDecoder() {
         try {
-            return NimbusJwtDecoder.withPublicKey(getPublicKey()).build();
+            NimbusJwtDecoder delegate = NimbusJwtDecoder.withPublicKey(getPublicKey()).build();
+            
+            return new JwtDecoder() {
+                @Override
+                public Jwt decode(String token) throws JwtException {
+                    try {
+                        return delegate.decode(token);
+                    } catch (JwtValidationException e) {
+                        boolean expired = e.getErrors().stream()
+                            .anyMatch(err -> {
+                                String desc = err.getDescription();
+                                return desc != null && desc.toLowerCase().contains("expired");
+                            });
+                        
+                        if (expired) {
+                            throw new HTTPResponseStatusException("JWT token has expired", "EXPIRED_TOKEN", HttpStatus.UNAUTHORIZED, null);
+                        }
+                        
+                        String errorMessage = e.getErrors().stream()
+                            .map(err -> err.getDescription() != null ? err.getDescription() : err.getErrorCode())
+                            .findFirst()
+                            .orElse("JWT validation failed");
+                        
+                        throw new JwtException(errorMessage);
+                    } catch (JwtException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        throw new HTTPResponseStatusException("JWT token has expired", "EXPIRED_TOKEN", HttpStatus.UNAUTHORIZED, null);
+                    }
+                }
+            };
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

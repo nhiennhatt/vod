@@ -10,9 +10,9 @@ import org.springframework.http.HttpStatus;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class HTTPResponseStatusException extends Exception {
+public class HTTPResponseStatusException extends RuntimeException {
     private String message;
-    private int status;
+    private String errorCode;
     private HttpStatus httpStatus;
     private Object data;
 }

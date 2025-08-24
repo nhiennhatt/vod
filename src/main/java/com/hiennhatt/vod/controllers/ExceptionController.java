@@ -19,7 +19,10 @@ public class ExceptionController {
     }
 
     @ExceptionHandler(HTTPResponseStatusException.class)
-    public ResponseEntity<HTTPResponseStatusException> handleHTTPResponseStatusException(HTTPResponseStatusException ex) {
-        return new ResponseEntity<>(ex, ex.getHttpStatus());
+    public ResponseEntity<Map<String, Object>> handleHTTPResponseStatusException(HTTPResponseStatusException ex) {
+        HashMap<String,Object> map = new HashMap<>();
+        map.put("message", ex.getMessage());
+        map.put("errorCode", ex.getErrorCode());
+        return new ResponseEntity<>(map, ex.getHttpStatus());
     }
 }
