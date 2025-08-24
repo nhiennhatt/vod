@@ -37,14 +37,14 @@ public class TokenServiceImpl implements TokenService {
         Instant now = Instant.now();
         JwtClaimsSet accessTokenClaimSet = JwtClaimsSet.builder()
             .issuedAt(now)
-            .expiresAt(now.plusMillis(Integer.parseInt(env.getProperty("jwt.expiration-ms.access", "0"))))
+            .expiresAt(now.plusSeconds(Integer.parseInt(env.getProperty("jwt.expiration-s.access", "0"))))
             .subject(user.getUsername())
             .claim("role", user.getRole().name())
             .build();
 
         JwtClaimsSet refreshTokenClaimSet = JwtClaimsSet.builder()
             .issuedAt(now)
-            .expiresAt(now.plusMillis(Integer.parseInt(env.getProperty("jwt.expiration-ms.refresh", "0"))))
+            .expiresAt(now.plusSeconds(Integer.parseInt(env.getProperty("jwt.expiration-s.refresh", "0"))))
             .subject(user.getUsername())
             .claim("role", user.getRole().name())
             .build();
