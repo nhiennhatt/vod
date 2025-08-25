@@ -10,6 +10,7 @@ import com.hiennhatt.vod.repositories.VideoRepository;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
 import com.hiennhatt.vod.services.VideoService;
+import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import com.hiennhatt.vod.utils.StoreUtils;
 import com.hiennhatt.vod.utils.ffmpeg.FFmpegUtils;
 import com.hiennhatt.vod.utils.ffmpeg.MultimediaInform;
@@ -22,7 +23,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -105,7 +105,7 @@ public class VideoServiceImpl implements VideoService {
     public VideoOverviewProjection getVideoOverview(String uuid) {
         VideoOverviewProjection video = videoRepository.getVideoOverview(UUID.fromString(uuid));
         if (video == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
+            throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
         return video;
     }
 
@@ -124,9 +124,8 @@ public class VideoServiceImpl implements VideoService {
 
     public VideoDetailProjection getVideo(String uuid) {
         VideoDetailProjection video = videoRepository.getVideoDetail(UUID.fromString(uuid));
-        if (video == null) {
-            throw new IllegalArgumentException("Video not found with ID: " + uuid);
-        }
+        if (video == null)
+            throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
         return video;
     }
 
@@ -138,9 +137,11 @@ public class VideoServiceImpl implements VideoService {
     @Transactional
     public void updateVideoThumbnail(UUID uid, UpdateVideoThumbnailValidation thumbnail, User user) {
         Video video = this.videoRepository.getVideoByUid(uid);
-        if (video == null) throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Video not found");
+        if (video == null)
+            throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
         String oldThumbnail = video.getThumbnail();
-        if (!Objects.equals(video.getUser().getId(), user.getId())) throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "User not authorized to update video");
+        if (!Objects.equals(video.getUser().getId(), user.getId()))
+            throw new HTTPResponseStatusException("You don't have permission to access resource", "NOT_PERMITTED", HttpStatus.FORBIDDEN, null);
 
         try {
             Path imagePath = StoreUtils.save(publicDirPath, UUID.randomUUID().toString().replace("-", ""), thumbnail.getThumbnail());
@@ -149,7 +150,7 @@ public class VideoServiceImpl implements VideoService {
             publicDirPath.resolve(oldThumbnail).toFile().delete();
         } catch (Exception e) {
             e.printStackTrace();
-            throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update video thumbnail");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update video thumbnail");
         }
     }
 
@@ -157,17 +158,22 @@ public class VideoServiceImpl implements VideoService {
     public void deleteVideo(String uuid, User user) {
         Video video = this.videoRepository.getVideoByUid(UUID.fromString(uuid));
         if (video == null)
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Video not found");
+            throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
         if (!Objects.equals(video.getUser().getId(), user.getId()))
-            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "User not authorized to delete video");
+            throw new HTTPResponseStatusException("You don't have permission to access resource", "NOT_PERMITTED", HttpStatus.FORBIDDEN, null);
         int result = videoRepository.deleteVideoById(video.getId());
         if (result <= 0)
-            throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete video");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete video thumbnail");
 
         publicDirPath.resolve(video.getThumbnail()).toFile().delete();
         try {
             FileUtils.deleteDirectory(videoDirPath.resolve(uuid).toFile());
         } catch (IOException ignored) {
         }
+    }
+
+    @Override
+    public List<VideoOverviewProjection> findVideoByKeyword(String keyword) {
+        return List.of();
     }
 }

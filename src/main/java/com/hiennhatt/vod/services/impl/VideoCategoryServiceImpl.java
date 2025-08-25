@@ -5,16 +5,15 @@ import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.Video;
 import com.hiennhatt.vod.models.VideoCategory;
 import com.hiennhatt.vod.repositories.CategoryRepository;
-import com.hiennhatt.vod.repositories.UserRepository;
 import com.hiennhatt.vod.repositories.VideoCategoryRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
 import com.hiennhatt.vod.repositories.projections.IdentifiableVideoProjection;
 import com.hiennhatt.vod.services.VideoCategoryService;
+import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,13 +37,13 @@ public class VideoCategoryServiceImpl implements VideoCategoryService {
         System.out.println(videoIdStr);
         IdentifiableVideoProjection videoProjection = videoRepository.findIdentifiableVideoProjectionByUid(videoId);
         if (videoProjection == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
+            throw new HTTPResponseStatusException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);;
 
         if (!videoProjection.getUser().getId().equals(user.getId()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to add categories to the video");
+            throw new HTTPResponseStatusException("You don't have permission to access resource", "NOT_PERMITTED", HttpStatus.FORBIDDEN, null);
 
         if (videoProjection.getStatus().equals(Video.Status.INACTIVE))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to add categories to the video");
+            throw new HTTPResponseStatusException("You don't have permission to access resource", "NOT_PERMITTED", HttpStatus.FORBIDDEN, null);
 
         Video video = videoProjection.toVideo();
         List<VideoCategory> videoCategories = categories.stream().map(c -> {
@@ -57,7 +56,7 @@ public class VideoCategoryServiceImpl implements VideoCategoryService {
         }).filter(Objects::nonNull).toList();
 
         if (videoCategories.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video category not found");
+            throw new HTTPResponseStatusException("Categories not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);;
 
         videoCategoryRepository.saveAll(videoCategories);
     }

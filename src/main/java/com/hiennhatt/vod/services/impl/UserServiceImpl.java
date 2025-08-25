@@ -9,6 +9,7 @@ import com.hiennhatt.vod.repositories.projections.BasicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.PublicUserInformProjection;
 import com.hiennhatt.vod.repositories.projections.SelfUserInformProjection;
 import com.hiennhatt.vod.services.UserService;
+import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import com.hiennhatt.vod.utils.StoreUtils;
 import com.hiennhatt.vod.validations.RegisterUserValidation;
 import com.hiennhatt.vod.validations.UpdateProfileValidation;
@@ -58,10 +59,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void registerUser(RegisterUserValidation registerUser) {
         if (userRepository.existsUserByUsername(registerUser.getUsername()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
-
+            throw new HTTPResponseStatusException("Username has already been taken", "USER_CONFLICT", HttpStatus.CONFLICT, null);
         if (userRepository.existsUserByEmail(registerUser.getEmail()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+            throw new HTTPResponseStatusException("Email has already been taken", "USER_CONFLICT", HttpStatus.CONFLICT, null);
 
         User user = registerUser.toUser();
         user.setRole(User.Role.ROLE_USER);
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
     public PublicUserInformProjection getUserInformByUsername(String username) {
         PublicUserInformProjection userInform = userInformRepository.findPublicUserInformProjectionByUserUsername(username);
         if (userInform == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new HTTPResponseStatusException("User inform not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
         return userInform;
     }
 
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
     public SelfUserInformProjection getUserInformByUser(User user) {
         SelfUserInformProjection userInform = userInformRepository.findSelfUserInformProjectionByUser(user);
         if (userInform == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new HTTPResponseStatusException("User inform not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
         return userInform;
     }
 
@@ -144,10 +144,11 @@ public class UserServiceImpl implements UserService {
             userInformRepository.save(inform);
         }
         catch (MimeTypeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid mime type");
+            throw new HTTPResponseStatusException("Invalid mime type", "INVALID_MIME_TYPE", HttpStatus.BAD_REQUEST, null);
         }
         catch (IOException e) {
-            throw new  ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -164,10 +165,11 @@ public class UserServiceImpl implements UserService {
             userInformRepository.save(inform);
         }
         catch (MimeTypeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid mime type");
+            throw new HTTPResponseStatusException("Invalid mime type", "INVALID_MIME_TYPE", HttpStatus.BAD_REQUEST, null);
         }
         catch (IOException e) {
-            throw new  ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

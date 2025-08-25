@@ -6,6 +6,7 @@ import com.hiennhatt.vod.repositories.SubscribeRepository;
 import com.hiennhatt.vod.repositories.UserRepository;
 import com.hiennhatt.vod.repositories.projections.SubscribeProjection;
 import com.hiennhatt.vod.services.SubscribeService;
+import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import com.hiennhatt.vod.validations.SubscribeUserValidation;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class SubscribeServiceImpl implements SubscribeService {
     public void subscribe(SubscribeUserValidation validation, User sourceUser) {
         User destUser = userRepository.findByUsername(validation.getTargetUsername());
         if (destUser == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found user");
+            throw new HTTPResponseStatusException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
 
         Subscribe subscribe = new Subscribe();
         subscribe.setSourceUser(sourceUser);
@@ -42,11 +43,11 @@ public class SubscribeServiceImpl implements SubscribeService {
     public void unsubscribe(SubscribeUserValidation validation, User sourceUser) {
         User destUser = userRepository.findByUsername(validation.getTargetUsername());
         if (destUser == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found user");
+            throw new HTTPResponseStatusException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
 
         Subscribe subscribe = subscribeRepository.findSubscribeBySourceUserAndDestUser(sourceUser, destUser);
         if (subscribe == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not already subscribed");
+            throw new HTTPResponseStatusException("User doesn't already subscribe that user", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
 
         subscribeRepository.delete(subscribe);
     }

@@ -7,11 +7,11 @@ import com.hiennhatt.vod.models.Video;
 import com.hiennhatt.vod.repositories.LikeRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
 import com.hiennhatt.vod.services.LikeService;
+import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,73 +27,56 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     public void likeVideo(UUID videoId, User user) {
-        try {
-            Video video = videoRepository.findVideoByUid(videoId);
-            if (video == null || video.getStatus() == Video.Status.INACTIVE)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
+        Video video = videoRepository.findVideoByUid(videoId);
+        if (video == null || video.getStatus() == Video.Status.INACTIVE)
+            throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
 
-            if (video.getPrivacy() == Video.Privacy.PRIVATE && !video.getUser().getId().equals(user.getId()))
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authorized to like private video");
+        if (video.getPrivacy() == Video.Privacy.PRIVATE && !video.getUser().getId().equals(user.getId()))
+            throw new HTTPResponseStatusException("You don't have permission to access resource", "NOT_PERMITTED", HttpStatus.FORBIDDEN, null);
 
-            if (likeRepository.existsLikeByVideoUidAndUser(videoId, user))
-                return;
+        if (likeRepository.existsLikeByVideoUidAndUser(videoId, user))
+            return;
 
-            Like like = new Like();
-            like.setVideo(video);
-            like.setUser(user);
-            like.setUid(UUID.randomUUID());
+        Like like = new Like();
+        like.setVideo(video);
+        like.setUser(user);
+        like.setUid(UUID.randomUUID());
 
-            likeRepository.save(like);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid video id");
-        }
+        likeRepository.save(like);
     }
 
     @Override
     public void unlikeVideo(UUID videoId, User user) {
-        try {
-            Video video = videoRepository.findVideoByUid(videoId);
+        Video video = videoRepository.findVideoByUid(videoId);
 
-            if (video == null || video.getStatus() == Video.Status.INACTIVE)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
+        if (video == null || video.getStatus() == Video.Status.INACTIVE)
+            throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
 
-            Like like = likeRepository.findLikeByVideoUidAndUser(videoId, user);
-            if (like == null)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not liked by user");
+        Like like = likeRepository.findLikeByVideoUidAndUser(videoId, user);
+        if (like == null)
+            throw new HTTPResponseStatusException("Video's not liked by user", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
 
-            likeRepository.delete(like);
-
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid video id");
-        }
+        likeRepository.delete(like);
     }
 
     @Override
     public boolean isVideoLiked(UUID videoId, User user) {
-        try {
-            Video video = videoRepository.findVideoByUid(videoId);
-            if (video == null || video.getStatus() == Video.Status.INACTIVE)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
-            if (video.getPrivacy() == Video.Privacy.PRIVATE && !video.getUser().getId().equals(user.getId()))
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authorized to like private video");
+        Video video = videoRepository.findVideoByUid(videoId);
+        if (video == null || video.getStatus() == Video.Status.INACTIVE)
+            throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
+        if (video.getPrivacy() == Video.Privacy.PRIVATE && !video.getUser().getId().equals(user.getId()))
+            throw new HTTPResponseStatusException("You don't have permission to access resource", "NOT_PERMITTED", HttpStatus.FORBIDDEN, null);
 
-            return likeRepository.existsLikeByVideoUidAndUser(videoId, user);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid video id");
-        }
+        return likeRepository.existsLikeByVideoUidAndUser(videoId, user);
     }
 
     @Override
     public long getLikesCount(UUID videoId) {
-        try {
-            Video video = videoRepository.findVideoByUid(videoId);
-            if (video == null || video.getStatus() == Video.Status.INACTIVE)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
+        Video video = videoRepository.findVideoByUid(videoId);
+        if (video == null || video.getStatus() == Video.Status.INACTIVE)
+            throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
 
-            return likeRepository.countLikesByVideo_Uid(videoId);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid video id");
-        }
+        return likeRepository.countLikesByVideo_Uid(videoId);
     }
 
     @Override

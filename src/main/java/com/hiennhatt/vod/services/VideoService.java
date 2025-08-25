@@ -8,6 +8,7 @@ import com.hiennhatt.vod.validations.UpdateVideoThumbnailValidation;
 import com.hiennhatt.vod.validations.UpdateVideoValidation;
 import com.hiennhatt.vod.validations.UploadVideoValidation;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface VideoService {
@@ -17,4 +18,5 @@ public interface VideoService {
     void updateVideo(UUID uid, UpdateVideoValidation video, User user);
     void updateVideoThumbnail(UUID uid, UpdateVideoThumbnailValidation thumbnail, User user);
     void deleteVideo(String uuid, User user);
+    List<VideoOverviewProjection> findVideoByKeyword(String keyword);
 }
