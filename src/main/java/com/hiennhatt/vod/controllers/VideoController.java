@@ -19,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -70,5 +71,10 @@ public class VideoController {
     @PreAuthorize("isAuthenticated()")
     public void addCategoriesToVideo(@RequestBody @Valid AddCategoriesToVideoValidation body, @AuthenticationPrincipal CustomUserDetails customUserDetails, @PathVariable @Valid @org.hibernate.validator.constraints.UUID String videoUid) {
         videoCategoryService.addCategoriesToVideo(body.getCategories(), videoUid, customUserDetails.getUser());
+    }
+
+    @GetMapping("")
+    public List<VideoOverviewProjection> findVideos(@RequestParam String q) {
+        return videoService.findVideoByKeyword('%' + q + '%');
     }
 }

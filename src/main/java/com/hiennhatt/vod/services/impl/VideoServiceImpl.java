@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -174,6 +175,6 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public List<VideoOverviewProjection> findVideoByKeyword(String keyword) {
-        return List.of();
+        return videoRepository.findVideoOverviewProjectionsByTitleLikeOrDescriptionLikeAndStatusAndPrivacy(keyword, keyword, Video.Status.ACTIVE, Video.Privacy.PUBLIC);
     }
 }

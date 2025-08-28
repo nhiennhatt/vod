@@ -5,6 +5,8 @@ import com.hiennhatt.vod.models.Video;
 import com.hiennhatt.vod.repositories.projections.IdentifiableVideoProjection;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -35,7 +37,7 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
     @Query("DELETE FROM Video WHERE id = :id")
     int deleteVideoById(@Param("id") Integer id);
 
-    List<VideoOverviewProjection> findVideoOverviewProjectionsByTitleLikeOrDescriptionLikeAndCategoriesWithinAndStatus(String title, String description, Set<Category> categories, Video.Status status);
-
     Video getVideoByUid(UUID uid);
+
+    List<VideoOverviewProjection> findVideoOverviewProjectionsByTitleLikeOrDescriptionLikeAndStatusAndPrivacy(@Size(max = 255) String title, String description, Video.Status status, Video.Privacy privacy);
 }
