@@ -5,10 +5,13 @@ import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.Video;
 import com.hiennhatt.vod.models.VideoCategory;
 import com.hiennhatt.vod.repositories.CategoryRepository;
+import com.hiennhatt.vod.repositories.UserRepository;
 import com.hiennhatt.vod.repositories.VideoCategoryRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
+import com.hiennhatt.vod.repositories.projections.AuthorizationUserProjection;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
+import com.hiennhatt.vod.services.UserService;
 import com.hiennhatt.vod.services.VideoService;
 import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import com.hiennhatt.vod.utils.StoreUtils;
@@ -20,6 +23,7 @@ import com.hiennhatt.vod.validations.UploadVideoValidation;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -43,10 +46,15 @@ public class VideoServiceImpl implements VideoService {
     private VideoRepository videoRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private CategoryRepository categoryRepository;
 
     @Autowired
     private VideoCategoryRepository videoCategoryRepository;
+    @Autowired
+    private UserService userService;
 
     public VideoServiceImpl(@Autowired Environment env) {
         tempDirPath = Path.of(env.getProperty("uploadedDir", "classpath:uploadDir/")).resolve("temp/");
@@ -174,7 +182,24 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public List<VideoOverviewProjection> findVideoByKeyword(String keyword) {
-        return videoRepository.findVideoOverviewProjectionsByTitleLikeOrDescriptionLikeAndStatusAndPrivacy(keyword, keyword, Video.Status.ACTIVE, Video.Privacy.PUBLIC);
+    public List<VideoOverviewProjection> findVideoByKeyword(String keyword, Pageable pageable) {
+        return videoRepository.findVideoOverviewProjectionsByTitleLikeOrDescriptionLikeAndStatusAndPrivacy(keyword, keyword, Video.Status.ACTIVE, Video.Privacy.PUBLIC, pageable);
+    }
+
+    @Override
+    public List<VideoOverviewProjection> getLatestVideos(Pageable pageable) {
+        return videoRepository.findVideoOverviewProjectionsByOrderByCreatedOnDesc(pageable);
+    }
+
+    @Override
+    public List<VideoOverviewProjection> getVideoOverviewProjectionsByUser(String username, Pageable pageable) {
+        AuthorizationUserProjection user = userRepository.findAuthorizationUserByUsername(username);
+        if (user == null) throw new HTTPResponseStatusException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
+        return videoRepository.findVideoOverviewProjectionsByUserAndPrivacyAndStatus(user.toUser(), Video.Privacy.PUBLIC, Video.Status.ACTIVE, pageable);
+    }
+
+    @Override
+    public List<VideoOverviewProjection> getOwnVideos(User user, Pageable pageable) {
+        return videoRepository.findVideoOverviewProjectionsByUser(user, pageable);
     }
 }

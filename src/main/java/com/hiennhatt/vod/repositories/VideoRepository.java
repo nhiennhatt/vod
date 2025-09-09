@@ -1,12 +1,12 @@
 package com.hiennhatt.vod.repositories;
 
-import com.hiennhatt.vod.models.Category;
+import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.Video;
 import com.hiennhatt.vod.repositories.projections.IdentifiableVideoProjection;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +14,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -29,6 +28,8 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
 
     IdentifiableVideoProjection findIdentifiableVideoProjectionByUid(UUID uid);
 
+    List<VideoOverviewProjection> findVideoOverviewProjectionsByOrderByCreatedOnDesc(Pageable pageable);
+
     @Modifying
     @Query("UPDATE Video v SET v.title = :title, v.description = :description, v.privacy = :privacy WHERE v.uid = :uid AND v.user.id = :userid")
     int updateVideo(@Param("uid") UUID uid, @Param("title") String title, @Param("description") String description, @Param("privacy") Video.Privacy privacy, @Param("userid") Integer userId);
@@ -39,5 +40,9 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
 
     Video getVideoByUid(UUID uid);
 
-    List<VideoOverviewProjection> findVideoOverviewProjectionsByTitleLikeOrDescriptionLikeAndStatusAndPrivacy(@Size(max = 255) String title, String description, Video.Status status, Video.Privacy privacy);
+    List<VideoOverviewProjection> findVideoOverviewProjectionsByTitleLikeOrDescriptionLikeAndStatusAndPrivacy(@Size(max = 255) String title, String description, Video.Status status, Video.Privacy privacy, Pageable pageable);
+
+    List<VideoOverviewProjection> findVideoOverviewProjectionsByUserAndPrivacyAndStatus(User user, Video.Privacy privacy, Video.Status status, Pageable pageable);
+
+    List<VideoOverviewProjection> findVideoOverviewProjectionsByUser(User user, Pageable pageable);
 }

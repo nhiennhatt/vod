@@ -63,7 +63,7 @@ public class Video {
     @Column(name = "file_name", nullable = false, length = 50)
     private String fileName;
 
-    @ColumnDefault("'PROCESSING'")
+    @ColumnDefault("'ACTIVE'")
     @Lob
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
