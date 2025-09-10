@@ -1,5 +1,6 @@
 package com.hiennhatt.vod.services.impl;
 
+import com.hiennhatt.vod.dtos.PreSaveFileDTO;
 import com.hiennhatt.vod.models.Category;
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.Video;
@@ -21,12 +22,15 @@ import com.hiennhatt.vod.validations.UpdateVideoThumbnailValidation;
 import com.hiennhatt.vod.validations.UpdateVideoValidation;
 import com.hiennhatt.vod.validations.UploadVideoValidation;
 import org.apache.commons.io.FileUtils;
+import org.apache.tika.mime.MimeTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -72,28 +76,43 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     @Transactional
-    public Video uploadVideo(UploadVideoValidation uploadVideoBody, User user) {
-        String uid = UUID.randomUUID().toString();
-        String thumbnailUid = StoreUtils.generateUid();
-
+    @Async
+    public void uploadVideo(PreSaveFileDTO preSaveFile) {
         try {
-            Path imagePath = StoreUtils.save(publicDirPath, thumbnailUid, uploadVideoBody.getThumbnail());
-            Path tempVideoPath = StoreUtils.saveTemp(tempDirPath, uid, uploadVideoBody.getVideo());
-
-            Path videoItemDirPath = videoDirPath.resolve(uid);
+            Video video = videoRepository.getVideoByUid(UUID.fromString(preSaveFile.getUid()));
+            if (video == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
+            Path videoItemDirPath = videoDirPath.resolve(preSaveFile.getUid());
             Files.createDirectories(videoItemDirPath);
             Path videoPath = videoItemDirPath.resolve("manifest.mpd");
 
-            MultimediaInform videoStreamInform = FFmpegUtils.getStreamInform("v:0", tempVideoPath.toString());
+            MultimediaInform videoStreamInform = FFmpegUtils.getStreamInform("v:0", preSaveFile.getTempVideoPath().toString());
             if (videoStreamInform == null || videoStreamInform.getStreams().isEmpty())
                 throw new Exception("Invalid video file");
-
-            MultimediaInform audioStreamInform = FFmpegUtils.getStreamInform("a:0", tempVideoPath.toString());
-            FFmpegUtils.generateMpd(videoPath.toString(), tempVideoPath.toString(), videoStreamInform.getStreams().get(0), audioStreamInform != null && !audioStreamInform.getStreams().isEmpty() ? audioStreamInform.getStreams().get(0) : null);
-
-            Video video = generateVideoInstance(uploadVideoBody, user, uid, imagePath.getFileName().toString());
+            MultimediaInform audioStreamInform = FFmpegUtils.getStreamInform("a:0", preSaveFile.getTempVideoPath().toString());
+            FFmpegUtils.generateMpd(videoPath.toString(), preSaveFile.getTempVideoPath().toString(), videoStreamInform.getStreams().get(0), audioStreamInform != null && !audioStreamInform.getStreams().isEmpty() ? audioStreamInform.getStreams().get(0) : null);
+            video.setStatus(Video.Status.ACTIVE);
             videoRepository.save(video);
-            List<VideoCategory> categories = uploadVideoBody.getCategories().stream().map(item -> {
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload video");
+        } finally {
+            try {
+                preSaveFile.getTempVideoPath().toFile().delete();
+            } catch (Exception ignored) {}
+        }
+    }
+
+    @Override
+    @Transactional
+    public PreSaveFileDTO preUploadVideo(UploadVideoValidation uploadVideo, MultipartFile thumbnail, MultipartFile videoFile, User user) {
+        try {
+            String uid = UUID.randomUUID().toString();
+            String thumbnailUid = StoreUtils.generateUid();
+            Path imagePath = StoreUtils.save(publicDirPath, thumbnailUid, thumbnail);
+            Path tempVideoPath = StoreUtils.saveTemp(tempDirPath, uid, videoFile);
+            Video video = generateVideoInstance(uploadVideo, user, uid, imagePath.getFileName().toString());
+            videoRepository.save(video);
+            List<VideoCategory> categories = uploadVideo.getCategories().stream().map(item -> {
                 Category category = categoryRepository.findCategoryBySlug(item);
                 if (category == null) return null;
 
@@ -103,11 +122,11 @@ public class VideoServiceImpl implements VideoService {
                 return videoCategory;
             }).filter(Objects::nonNull).toList();
             videoCategoryRepository.saveAll(categories);
-            tempVideoPath.toFile().delete();
-            return video;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload video");
+            return new PreSaveFileDTO(uid, imagePath, tempVideoPath);
+        } catch (IOException e) {
+            throw new HTTPResponseStatusException("Internal server error", "INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save file");
+        } catch (MimeTypeException e) {
+            throw new HTTPResponseStatusException("Invalid mime type", "INVALID_MIME_TYPE", HttpStatus.BAD_REQUEST, null);
         }
     }
 
@@ -194,7 +213,8 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public List<VideoOverviewProjection> getVideoOverviewProjectionsByUser(String username, Pageable pageable) {
         AuthorizationUserProjection user = userRepository.findAuthorizationUserByUsername(username);
-        if (user == null) throw new HTTPResponseStatusException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
+        if (user == null)
+            throw new HTTPResponseStatusException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
         return videoRepository.findVideoOverviewProjectionsByUserAndPrivacyAndStatus(user.toUser(), Video.Privacy.PUBLIC, Video.Status.ACTIVE, pageable);
     }
 

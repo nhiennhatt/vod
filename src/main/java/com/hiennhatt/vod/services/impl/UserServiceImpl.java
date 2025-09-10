@@ -47,8 +47,8 @@ public class UserServiceImpl implements UserService {
     public void init() {
         String uploadDirString = env.getProperty("uploadedDir", "classpath:uploadDir/");
         Path uploadDirPath = Paths.get(uploadDirString);
-        uploadAvatarDir = uploadDirPath.resolve("avatars/");
-        uploadCoverDir = uploadDirPath.resolve("covers/");
+        uploadAvatarDir = uploadDirPath.resolve("public/avatars/");
+        uploadCoverDir = uploadDirPath.resolve("public/covers/");
         try {
             Files.createDirectories(uploadAvatarDir);
             Files.createDirectories(uploadCoverDir);

@@ -44,7 +44,7 @@ CREATE TABLE `videos`
     `thumbnail`   VARCHAR(45)                                                     NOT NULL,
     `description` TEXT                                                            NOT NULL,
     `file_name`   VARCHAR(45)                                                     NOT NULL,
-    `status`      ENUM ('PROCESSING', 'ACTIVE', 'INACTIVE', 'VIOLATED', 'FAILED') NOT NULL DEFAULT 'PROCESSING',
+    `status`      ENUM ('PROCESSING', 'ACTIVE', 'INACTIVE', 'VIOLATED', 'FAILED') NOT NULL DEFAULT 'ACTIVE',
     `privacy`     ENUM ('PUBLIC', 'PRIVATE', 'LIMITED')                           NOT NULL,
     `created_on`  TIMESTAMP                                                       NOT NULL,
     `updated_on`  TIMESTAMP                                                       NOT NULL,
