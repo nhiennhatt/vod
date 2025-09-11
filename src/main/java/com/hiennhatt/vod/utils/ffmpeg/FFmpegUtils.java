@@ -8,11 +8,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class FFmpegUtils {
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static int[] validResolutions = {1080, 720, 480, 240, 144};
+    private static final int[] validResolutions = {1080, 720, 480, 360, 240};
 
     public static MultimediaInform getStreamInform(String selectedStream, String filePath) {
         ProcessBuilder processBuilder = new ProcessBuilder(
@@ -45,14 +46,14 @@ public class FFmpegUtils {
         resolutionForVideo.forEach(i -> command.addAll(List.of("-map", "0:v:0", "-map", "0:a:0")));
         command.addAll(List.of(
             "-c:v", "libx264",
-            "-c:a", "aac"
+            "-c:a", "aac",
+            "-b:a", "128k"
         ));
         for (int i = 0; i < resolutionForVideo.size(); i++) {
             int resolution = resolutionForVideo.get(i);
             command.addAll(List.of(
-                "-b:v:" + i, getVideoBitrate(resolution) + "k",
                 "-s:v:" + i, getResolutionString(resolution),
-                "-b:a:" + i, getAudioBitrate(resolution) + "k"
+                "-b:v:" + i, getVideoBitrate(resolution) + "k"
             ));
         }
         command.addAll(List.of(
@@ -60,17 +61,21 @@ public class FFmpegUtils {
             "-seg_duration", "4",
             "-use_template", "1",
             "-use_timeline", "1",
+            "-preset", "medium",
+            "-crf", "22",
             "-init_seg_name", "init-$RepresentationID$.m4s",
-            "-media_seg_name", "segment-$RepresentationID$-$Number$.m4s",
-            "-window_size", "5",
+            "-media_seg_name", "chunk-$RepresentationID$-$Number%06d$.m4s",
             "-adaptation_sets", "id=0,streams=v id=1,streams=a",
             outputFilePath
         ));
+        System.out.println(String.join(" ", command));
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         try {
             Process process = processBuilder.start();
-            process.waitFor(4000, TimeUnit.SECONDS);
+            process.waitFor(20, TimeUnit.MINUTES);
             InputStream inputStream = process.getInputStream();
+            String output = new String(inputStream.readAllBytes());
+            System.out.println(output);
             inputStream.close();
             process.destroy();
         } catch (Exception e) {
@@ -82,7 +87,7 @@ public class FFmpegUtils {
         return Arrays.stream(validResolutions).boxed()
             .map(i -> List.of(i, Math.abs(i - resolution)))
             .min(Comparator.comparing(o -> o.get(1)))
-            .orElse(List.of(144, 0))
+            .orElse(List.of(240))
             .get(0);
     }
 
@@ -93,18 +98,9 @@ public class FFmpegUtils {
     private static int getVideoBitrate(int resolution) {
         return switch (resolution) {
             case 1080 -> 4500;
-            case 720 -> 2600;
-            case 480 -> 1200;
-            case 240 -> 600;
-            default -> 400;
-        };
-    }
-
-    private static int getAudioBitrate(int resolution) {
-        return switch (resolution) {
-            case 1080, 720 -> 128;
-            case 480 -> 96;
-            default -> 64;
+            case 720 -> 1500;
+            case 480 -> 1000;
+            default -> 800;
         };
     }
 }

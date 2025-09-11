@@ -1,5 +1,6 @@
 package com.hiennhatt.vod.controllers;
 
+import com.hiennhatt.vod.dtos.CreationDTO;
 import com.hiennhatt.vod.dtos.PreSaveFileDTO;
 import com.hiennhatt.vod.dtos.VideoOverviewDTO;
 import com.hiennhatt.vod.models.CustomUserDetails;
@@ -15,6 +16,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -36,10 +38,10 @@ public class VideoController {
 
     @PostMapping(value = "", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> uploadVideo(@ModelAttribute @Valid UploadVideoValidation body, @AuthenticationPrincipal CustomUserDetails user) {
+    public ResponseEntity<CreationDTO> uploadVideo(@ModelAttribute @Valid UploadVideoValidation body, @AuthenticationPrincipal CustomUserDetails user) {
         PreSaveFileDTO saveFile = videoService.preUploadVideo(body, body.getThumbnail(), body.getVideo(), user.getUser());
         this.videoService.uploadVideo(saveFile);
-        return ResponseEntity.accepted().build();
+        return new ResponseEntity<>(new CreationDTO(UUID.fromString(saveFile.getUid())), null, HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/{uid}/overview")

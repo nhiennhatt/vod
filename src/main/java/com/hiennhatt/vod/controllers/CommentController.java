@@ -2,6 +2,7 @@ package com.hiennhatt.vod.controllers;
 
 import com.hiennhatt.vod.dtos.CommentDTO;
 import com.hiennhatt.vod.dtos.CountCommentDTO;
+import com.hiennhatt.vod.dtos.CreationDTO;
 import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.services.CommentService;
 import com.hiennhatt.vod.validations.SaveCommentValidation;
@@ -22,11 +23,11 @@ public class CommentController {
 
     @PostMapping("")
     @PreAuthorize("isAuthenticated()")
-    public void saveComment(@RequestBody @Validated SaveCommentValidation body, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        this.commentService.saveComment(body, userDetails.getUser());
+    public CreationDTO saveComment(@RequestBody @Validated SaveCommentValidation body, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return new CreationDTO(this.commentService.saveComment(body, userDetails.getUser()));
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     @PreAuthorize("isAuthenticated()")
     public List<CommentDTO> getCommentsByVideoId(@RequestParam(required = true) String videoId, @RequestParam(required = false) UUID previousComment, @AuthenticationPrincipal CustomUserDetails userDetails) {
         return this.commentService.getComments(UUID.fromString(videoId), previousComment, userDetails.getUser());

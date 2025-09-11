@@ -79,8 +79,6 @@ public class VideoServiceImpl implements VideoService {
     @Async
     public void uploadVideo(PreSaveFileDTO preSaveFile) {
         try {
-            Video video = videoRepository.getVideoByUid(UUID.fromString(preSaveFile.getUid()));
-            if (video == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
             Path videoItemDirPath = videoDirPath.resolve(preSaveFile.getUid());
             Files.createDirectories(videoItemDirPath);
             Path videoPath = videoItemDirPath.resolve("manifest.mpd");
@@ -90,6 +88,8 @@ public class VideoServiceImpl implements VideoService {
                 throw new Exception("Invalid video file");
             MultimediaInform audioStreamInform = FFmpegUtils.getStreamInform("a:0", preSaveFile.getTempVideoPath().toString());
             FFmpegUtils.generateMpd(videoPath.toString(), preSaveFile.getTempVideoPath().toString(), videoStreamInform.getStreams().get(0), audioStreamInform != null && !audioStreamInform.getStreams().isEmpty() ? audioStreamInform.getStreams().get(0) : null);
+            Video video = videoRepository.getVideoByUid(UUID.fromString(preSaveFile.getUid()));
+            if (video == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found");
             video.setStatus(Video.Status.ACTIVE);
             videoRepository.save(video);
         } catch (Exception e) {
@@ -98,7 +98,8 @@ public class VideoServiceImpl implements VideoService {
         } finally {
             try {
                 preSaveFile.getTempVideoPath().toFile().delete();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -112,20 +113,24 @@ public class VideoServiceImpl implements VideoService {
             Path tempVideoPath = StoreUtils.saveTemp(tempDirPath, uid, videoFile);
             Video video = generateVideoInstance(uploadVideo, user, uid, imagePath.getFileName().toString());
             videoRepository.save(video);
-            List<VideoCategory> categories = uploadVideo.getCategories().stream().map(item -> {
-                Category category = categoryRepository.findCategoryBySlug(item);
-                if (category == null) return null;
+            if (uploadVideo.getCategories() != null && !uploadVideo.getCategories().isEmpty()) {
+                List<VideoCategory> categories = uploadVideo.getCategories().stream().map(item -> {
+                    Category category = categoryRepository.findCategoryBySlug(item);
+                    if (category == null) return null;
 
-                VideoCategory videoCategory = new VideoCategory();
-                videoCategory.setVideo(video);
-                videoCategory.setCategory(category);
-                return videoCategory;
-            }).filter(Objects::nonNull).toList();
-            videoCategoryRepository.saveAll(categories);
+                    VideoCategory videoCategory = new VideoCategory();
+                    videoCategory.setVideo(video);
+                    videoCategory.setCategory(category);
+                    return videoCategory;
+                }).filter(Objects::nonNull).toList();
+                videoCategoryRepository.saveAll(categories);
+            }
             return new PreSaveFileDTO(uid, imagePath, tempVideoPath);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new HTTPResponseStatusException("Internal server error", "INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save file");
         } catch (MimeTypeException e) {
+            e.printStackTrace();
             throw new HTTPResponseStatusException("Invalid mime type", "INVALID_MIME_TYPE", HttpStatus.BAD_REQUEST, null);
         }
     }

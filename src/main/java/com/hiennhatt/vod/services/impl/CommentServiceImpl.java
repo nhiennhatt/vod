@@ -25,7 +25,7 @@ public class CommentServiceImpl implements CommentService {
     private VideoRepository videoRepository;
 
     @Override
-    public void saveComment(SaveCommentValidation saveComment, User user) {
+    public UUID saveComment(SaveCommentValidation saveComment, User user) {
         Video video = videoRepository.findVideoByUid(UUID.fromString(saveComment.getVideoId()));
         if (video == null || video.getStatus() == Video.Status.INACTIVE)
             throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
@@ -41,6 +41,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setUser(user);
 
         commentRepository.save(comment);
+        return comment.getUid();
     }
 
     @Override
