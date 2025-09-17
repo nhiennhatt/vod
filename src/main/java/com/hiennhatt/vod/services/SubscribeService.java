@@ -1,6 +1,7 @@
 package com.hiennhatt.vod.services;
 
 import com.hiennhatt.vod.models.User;
+import com.hiennhatt.vod.repositories.projections.AuthorizationUserProjection;
 import com.hiennhatt.vod.repositories.projections.SubscribeProjection;
 import com.hiennhatt.vod.validations.SubscribeUserValidation;
 
@@ -10,6 +11,7 @@ public interface SubscribeService {
     void subscribe(SubscribeUserValidation validation, User sourceUser);
     void unsubscribe(SubscribeUserValidation validation, User sourceUser);
     List<SubscribeProjection> getSubscribers(User destUser);
-    List<SubscribeProjection> getSubscribesByUser(User sourceUser);
+    List<SubscribeProjection> getSubscribesByUser(User user);
     long countSubscribersOfUser(String username);
+    boolean isSubscribed(User sourceUser, String destUsername);
 }

@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -82,13 +83,19 @@ public class VideoController {
 
     @GetMapping("")
     public List<VideoOverviewDTO> findVideos(@RequestParam String q, @RequestParam(required = false) Integer page) {
-        Pageable pageable = PageRequest.of(page == null ? 0 : page, 10);
+        Pageable pageable = PageRequest.of(page == null ? 0 : page, 12);
         return videoService.findVideoByKeyword('%' + q + '%', pageable).stream().map(VideoOverviewDTO::new).toList();
     }
 
     @GetMapping("latest")
     public List<VideoOverviewDTO> lastestVideos(@RequestParam(required = false) Integer page) {
-        Pageable pageable = PageRequest.of(page == null ? 0 : page, 10);
+        Pageable pageable = PageRequest.of(page == null ? 0 : page, 12, Sort.by(Sort.Direction.DESC, "createdOn"));
         return videoService.getLatestVideos(pageable).stream().map(VideoOverviewDTO::new).toList();
+    }
+
+    @GetMapping("subscribed")
+    public List<VideoOverviewDTO> getVideosSubscribedByUser(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestParam(required = false) Integer page) {
+        Pageable pageable = PageRequest.of(page == null ? 0 : page, 12);
+        return videoService.getVideosSubscribedByUser(customUserDetails.getUser(), pageable).stream().map(VideoOverviewDTO::new).toList();
     }
 }

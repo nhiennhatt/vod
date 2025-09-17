@@ -1,6 +1,7 @@
 package com.hiennhatt.vod.controllers;
 
 import com.hiennhatt.vod.dtos.CountSubscribersDTO;
+import com.hiennhatt.vod.dtos.IsSubscribedDTO;
 import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.repositories.projections.SubscribeProjection;
 import com.hiennhatt.vod.services.SubscribeService;
@@ -35,6 +36,12 @@ public class SubscribeController {
     @PreAuthorize("isAuthenticated()")
     public List<SubscribeProjection> getSubscribedByUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return subscribeService.getSubscribesByUser(customUserDetails.getUser());
+    }
+
+    @GetMapping("/subscribed/{username}")
+    @PreAuthorize("isAuthenticated()")
+    public IsSubscribedDTO isSubscribed(@AuthenticationPrincipal CustomUserDetails customUserDetails, @PathVariable("username") String username) {
+        return new IsSubscribedDTO(subscribeService.isSubscribed(customUserDetails.getUser(), username));
     }
 
     @GetMapping("/subscribers")

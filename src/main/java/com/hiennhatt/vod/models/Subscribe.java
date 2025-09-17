@@ -30,12 +30,12 @@ public class Subscribe {
     private UUID uid;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "source_user", nullable = false)
     private User sourceUser;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "dest_user", nullable = false)
     private User destUser;
 

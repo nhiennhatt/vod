@@ -26,9 +26,13 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
     @Query("SELECT v FROM Video v where v.uid = :uid")
     VideoDetailProjection getVideoDetail(UUID uid);
 
+    @Query("SELECT v FROM Subscribe s LEFT JOIN Video v ON v.user = s.destUser WHERE s.sourceUser = :sourceUser and v.status = com.hiennhatt.vod.models.Video.Status.ACTIVE ORDER BY v.createdOn desc")
+    List<VideoOverviewProjection> findVideosSubscribedByUser(@Param("sourceUser") User sourceUser, Pageable pageable);
+
     IdentifiableVideoProjection findIdentifiableVideoProjectionByUid(UUID uid);
 
-    List<VideoOverviewProjection> findVideoOverviewProjectionsByOrderByCreatedOnDesc(Pageable pageable);
+    @Query("SELECT v FROM Video v WHERE v.status = com.hiennhatt.vod.models.Video.Status.ACTIVE and v.privacy = com.hiennhatt.vod.models.Video.Privacy.PUBLIC")
+    List<VideoOverviewProjection> getNewestVideos(Pageable pageable);
 
     @Modifying
     @Query("UPDATE Video v SET v.title = :title, v.description = :description, v.privacy = :privacy WHERE v.uid = :uid AND v.user.id = :userid")
@@ -42,7 +46,11 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
 
     List<VideoOverviewProjection> findVideoOverviewProjectionsByTitleLikeOrDescriptionLikeAndStatusAndPrivacy(@Size(max = 255) String title, String description, Video.Status status, Video.Privacy privacy, Pageable pageable);
 
-    List<VideoOverviewProjection> findVideoOverviewProjectionsByUserAndPrivacyAndStatus(User user, Video.Privacy privacy, Video.Status status, Pageable pageable);
+    @Query("SELECT v from Video v WHERE v.user.username = :username and v.status = com.hiennhatt.vod.models.Video.Status.ACTIVE and v.privacy = com.hiennhatt.vod.models.Video.Privacy.PUBLIC")
+    List<VideoOverviewProjection> findVideosOwnByUsername(@Param("username") String username, Pageable pageable);
 
-    List<VideoOverviewProjection> findVideoOverviewProjectionsByUser(User user, Pageable pageable);
+    @Query("SELECT v from Video v WHERE v.user = :user and v.status <> com.hiennhatt.vod.models.Video.Status.INACTIVE")
+    List<VideoOverviewProjection> findMyVideos(User user, Pageable pageable);
+
+    long countVideosByUserAndStatusAndPrivacy(User user, Video.Status status, Video.Privacy privacy);
 }

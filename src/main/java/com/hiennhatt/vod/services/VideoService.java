@@ -25,4 +25,6 @@ public interface VideoService {
     List<VideoOverviewProjection> getLatestVideos(Pageable pageable);
     List<VideoOverviewProjection> getVideoOverviewProjectionsByUser(String username, Pageable pageable);
     List<VideoOverviewProjection> getOwnVideos(User user, Pageable pageable);
+    List<VideoOverviewProjection> getVideosSubscribedByUser(User user, Pageable pageable);
+    long countUserPublicVideos(String username);
 }

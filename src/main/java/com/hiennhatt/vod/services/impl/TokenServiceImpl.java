@@ -33,7 +33,8 @@ public class TokenServiceImpl implements TokenService {
     @Autowired
     private Environment env;
 
-    private GainTokenDTO generateToken(AuthorizationUserProjection user) {
+    @Override
+    public GainTokenDTO generateToken(AuthorizationUserProjection user) {
         Instant now = Instant.now();
         JwtClaimsSet accessTokenClaimSet = JwtClaimsSet.builder()
             .issuedAt(now)

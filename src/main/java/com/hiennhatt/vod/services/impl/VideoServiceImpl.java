@@ -9,7 +9,7 @@ import com.hiennhatt.vod.repositories.CategoryRepository;
 import com.hiennhatt.vod.repositories.UserRepository;
 import com.hiennhatt.vod.repositories.VideoCategoryRepository;
 import com.hiennhatt.vod.repositories.VideoRepository;
-import com.hiennhatt.vod.repositories.projections.AuthorizationUserProjection;
+import com.hiennhatt.vod.repositories.projections.IdentifiableUserProjection;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
 import com.hiennhatt.vod.services.UserService;
@@ -212,19 +212,29 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public List<VideoOverviewProjection> getLatestVideos(Pageable pageable) {
-        return videoRepository.findVideoOverviewProjectionsByOrderByCreatedOnDesc(pageable);
+        return videoRepository.getNewestVideos(pageable);
     }
 
     @Override
     public List<VideoOverviewProjection> getVideoOverviewProjectionsByUser(String username, Pageable pageable) {
-        AuthorizationUserProjection user = userRepository.findAuthorizationUserByUsername(username);
-        if (user == null)
-            throw new HTTPResponseStatusException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
-        return videoRepository.findVideoOverviewProjectionsByUserAndPrivacyAndStatus(user.toUser(), Video.Privacy.PUBLIC, Video.Status.ACTIVE, pageable);
+        return videoRepository.findVideosOwnByUsername(username, pageable);
     }
 
     @Override
     public List<VideoOverviewProjection> getOwnVideos(User user, Pageable pageable) {
-        return videoRepository.findVideoOverviewProjectionsByUser(user, pageable);
+        return videoRepository.findMyVideos(user, pageable);
+    }
+
+    @Override
+    public List<VideoOverviewProjection> getVideosSubscribedByUser(User user, Pageable pageable) {
+        return videoRepository.findVideosSubscribedByUser(user, pageable);
+    }
+
+    @Override
+    public long countUserPublicVideos(String username) {
+        IdentifiableUserProjection user = userRepository.findIdentifiableUserByUsername(username);
+        if (user == null)
+            throw new HTTPResponseStatusException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
+        return videoRepository.countVideosByUserAndStatusAndPrivacy(user.toUser(), Video.Status.ACTIVE, Video.Privacy.PUBLIC);
     }
 }

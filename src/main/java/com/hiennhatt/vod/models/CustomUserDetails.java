@@ -8,9 +8,9 @@ import java.util.Collection;
 import java.util.Set;
 
 public class CustomUserDetails implements org.springframework.security.core.userdetails.UserDetails{
-    private final User user;
+    private final AuthorizationUserProjection user;
     public CustomUserDetails(AuthorizationUserProjection authorizationUserProjection) {
-        this.user = authorizationUserProjection.toUser();
+        this.user = authorizationUserProjection;
     }
 
     @Override
@@ -53,6 +53,10 @@ public class CustomUserDetails implements org.springframework.security.core.user
     }
 
     public User getUser() {
+        return user.toUser();
+    }
+
+    public AuthorizationUserProjection getAuthorizationUser() {
         return user;
     }
 }

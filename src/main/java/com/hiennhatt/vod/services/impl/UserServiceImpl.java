@@ -1,13 +1,13 @@
 package com.hiennhatt.vod.services.impl;
 
-import com.hiennhatt.vod.dtos.BasicUserInformDTO;
 import com.hiennhatt.vod.models.User;
 import com.hiennhatt.vod.models.UserInform;
 import com.hiennhatt.vod.repositories.UserInformRepository;
 import com.hiennhatt.vod.repositories.UserRepository;
+import com.hiennhatt.vod.repositories.projections.AuthorizationUserProjection;
 import com.hiennhatt.vod.repositories.projections.BasicUserInformProjection;
+import com.hiennhatt.vod.repositories.projections.DetailUserProjection;
 import com.hiennhatt.vod.repositories.projections.PublicUserInformProjection;
-import com.hiennhatt.vod.repositories.projections.SelfUserInformProjection;
 import com.hiennhatt.vod.services.UserService;
 import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import com.hiennhatt.vod.utils.StoreUtils;
@@ -17,6 +17,7 @@ import jakarta.annotation.PostConstruct;
 import org.apache.tika.mime.MimeTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -91,8 +92,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public SelfUserInformProjection getUserInformByUser(User user) {
-        SelfUserInformProjection userInform = userInformRepository.findSelfUserInformProjectionByUser(user);
+    public DetailUserProjection getUserInformByUser(User user) {
+        DetailUserProjection userInform = userRepository.findDetailUserProjectionByUsername(user.getUsername());
         if (userInform == null)
             throw new HTTPResponseStatusException("User inform not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
         return userInform;
@@ -128,26 +129,25 @@ public class UserServiceImpl implements UserService {
     private UserInform createUserInformFrom(User user) {
         UserInform userInform = new UserInform();
         userInform.setUser(user);
-        userInformRepository.save(userInform);
         return userInform;
     }
 
     @Override
     @Transactional
-    public void updateAvatar(MultipartFile avatar, User user) {
+    public String updateAvatar(MultipartFile avatar, User user) {
         try {
             Path savedPath = StoreUtils.save(uploadAvatarDir, StoreUtils.generateUid(), avatar);
-            UserInform inform = user.getUserInform();
+            UserInform inform = userInformRepository.findUserInformByUser(user);
             if (inform == null) {
                 inform = createUserInformFrom(user);
             }
             inform.setAvatar(savedPath.getFileName().toString());
             userInformRepository.save(inform);
-        }
-        catch (MimeTypeException e) {
+            return savedPath.getFileName().toString();
+        } catch (MimeTypeException e) {
+            e.printStackTrace();
             throw new HTTPResponseStatusException("Invalid mime type", "INVALID_MIME_TYPE", HttpStatus.BAD_REQUEST, null);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -155,28 +155,48 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateCoverImage(MultipartFile cover, User user) {
+    public String updateCoverImage(MultipartFile cover, User user) {
         try {
             Path savedPath = StoreUtils.save(uploadCoverDir, StoreUtils.generateUid(), cover);
-            UserInform inform = user.getUserInform();
+            UserInform inform = userInformRepository.findUserInformByUser(user);
             if (inform == null) {
                 inform = createUserInformFrom(user);
             }
+            System.out.println(savedPath.getFileName().toString());
             inform.setCoverImg(savedPath.getFileName().toString());
             userInformRepository.save(inform);
-        }
-        catch (MimeTypeException e) {
+            return savedPath.getFileName().toString();
+        } catch (MimeTypeException e) {
             throw new HTTPResponseStatusException("Invalid mime type", "INVALID_MIME_TYPE", HttpStatus.BAD_REQUEST, null);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Override
-    public BasicUserInformDTO getBasicUserInformDTO(User user) {
-        BasicUserInformProjection basicUserInform = userInformRepository.findUserInformProjectionByUser(user);
-        return new BasicUserInformDTO(user, basicUserInform);
+    public BasicUserInformProjection getBasicUserInformDTO(User user) {
+        return userInformRepository.findUserInformProjectionByUser((user));
+    }
+
+    @Transactional
+    @Override
+    public AuthorizationUserProjection updateUsername(String newUsername, User user) {
+        try {
+            userRepository.updateUserUsername(newUsername.toLowerCase(), user.getId());
+            return userRepository.findAuthorizationUserByUsername(newUsername);
+        } catch (DataIntegrityViolationException e) {
+            throw new HTTPResponseStatusException("Username has already been taken", "USER_CONFLICT", HttpStatus.CONFLICT, null);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateEmail(String newEmail, User user) {
+        try {
+            userRepository.updateUserEmail(newEmail, user.getId());
+        } catch (DataIntegrityViolationException e) {
+            throw new HTTPResponseStatusException("Email has already been taken", "USER_CONFLICT", HttpStatus.CONFLICT, null);
+        }
     }
 }
