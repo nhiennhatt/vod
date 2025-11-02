@@ -1,1 +1,3 @@
+use vod;
+
 alter table subscribes add constraint unique_subscribe_source_dest_user unique (source_user, dest_user);

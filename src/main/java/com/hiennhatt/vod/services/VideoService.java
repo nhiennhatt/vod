@@ -2,6 +2,8 @@ package com.hiennhatt.vod.services;
 
 import com.hiennhatt.vod.dtos.PreSaveFileDTO;
 import com.hiennhatt.vod.models.User;
+import com.hiennhatt.vod.models.Video;
+import com.hiennhatt.vod.models.VideoCategory;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
 import com.hiennhatt.vod.validations.UpdateVideoThumbnailValidation;

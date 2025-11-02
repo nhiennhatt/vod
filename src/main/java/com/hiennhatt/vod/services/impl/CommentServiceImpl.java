@@ -10,6 +10,7 @@ import com.hiennhatt.vod.services.CommentService;
 import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import com.hiennhatt.vod.validations.SaveCommentValidation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +46,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<CommentDTO> getComments(UUID videoId, UUID previousComment, User user) {
+    public List<CommentDTO> getComments(UUID videoId, Pageable pageable, User user) {
         Video video = videoRepository.findVideoByUid(videoId);
 
         if (video == null || video.getStatus() == Video.Status.INACTIVE)
@@ -54,10 +55,7 @@ public class CommentServiceImpl implements CommentService {
         if (video.getPrivacy() == Video.Privacy.PRIVATE && !user.getId().equals(video.getUser().getId()))
             throw new HTTPResponseStatusException("You don't have permission to access resource", "NOT_PERMITTED", HttpStatus.FORBIDDEN, null);
 
-        if (previousComment == null)
-            return commentRepository.findCommentsInPublic(video, user).stream().map(CommentDTO::new).toList();
-
-        return commentRepository.findNextCommentsInPublic(video, user, previousComment).stream().map(CommentDTO::new).toList();
+        return commentRepository.findCommentsInPublic(video, user, pageable).stream().map(CommentDTO::new).toList();
     }
 
     @Override
@@ -77,7 +75,7 @@ public class CommentServiceImpl implements CommentService {
         Video video = videoRepository.findVideoByUid(videoId);
         if (video == null || video.getStatus() == Video.Status.INACTIVE)
             throw new HTTPResponseStatusException("Video not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);
-        if (video.getPrivacy() == Video.Privacy.PRIVATE  && !user.getId().equals(video.getUser().getId()))
+        if (video.getPrivacy() == Video.Privacy.PRIVATE && !user.getId().equals(video.getUser().getId()))
             throw new HTTPResponseStatusException("You don't have permission to access resource", "NOT_PERMITTED", HttpStatus.FORBIDDEN, null);
         return commentRepository.countCommentByVideoAndStatus(video, Comment.Status.ACTIVE);
     }

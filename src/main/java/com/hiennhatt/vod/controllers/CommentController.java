@@ -7,6 +7,9 @@ import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.services.CommentService;
 import com.hiennhatt.vod.validations.SaveCommentValidation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -29,8 +32,9 @@ public class CommentController {
 
     @GetMapping("")
     @PreAuthorize("isAuthenticated()")
-    public List<CommentDTO> getCommentsByVideoId(@RequestParam(required = true) String videoId, @RequestParam(required = false) UUID previousComment, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return this.commentService.getComments(UUID.fromString(videoId), previousComment, userDetails.getUser());
+    public List<CommentDTO> getCommentsByVideoId(@RequestParam(required = true) String videoId, @RequestParam(required = false) Integer page, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Pageable pageable = PageRequest.of(page != null ? page : 0, 6);
+        return this.commentService.getComments(UUID.fromString(videoId), pageable, userDetails.getUser());
     }
 
     @DeleteMapping("/{uid}")

@@ -11,9 +11,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -85,5 +83,5 @@ public class Video {
 
     @ManyToMany
     @JoinTable(name = "video_categories", joinColumns = {@JoinColumn(name = "video_id")}, inverseJoinColumns = {@JoinColumn(name = "category_id")})
-    private Set<Category> categories = new HashSet<>();
+    private List<Category> categories = new ArrayList<>();
 }

@@ -72,7 +72,7 @@ public class FFmpegUtils {
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         try {
             Process process = processBuilder.start();
-            process.waitFor(20, TimeUnit.MINUTES);
+            process.waitFor(40, TimeUnit.MINUTES);
             InputStream inputStream = process.getInputStream();
             String output = new String(inputStream.readAllBytes());
             System.out.println(output);

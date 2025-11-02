@@ -11,10 +11,12 @@ import com.hiennhatt.vod.repositories.projections.IdentifiableVideoProjection;
 import com.hiennhatt.vod.services.VideoCategoryService;
 import com.hiennhatt.vod.utils.HTTPResponseStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -59,5 +61,20 @@ public class VideoCategoryServiceImpl implements VideoCategoryService {
             throw new HTTPResponseStatusException("Categories not found", "NOT_FOUND", HttpStatus.NOT_FOUND, null);;
 
         videoCategoryRepository.saveAll(videoCategories);
+    }
+
+    @Override
+    public List<Category> getVideoCategories(UUID uid) {
+        Video video = videoRepository.findVideoByUid(uid);
+        System.out.println(video);
+        if (video == null) return List.of();
+        return video.getCategories();
+    }
+
+    @Override
+    public List<Video> getVideosByCategory(String slug, Pageable pageable) {
+        Category category = categoryRepository.findCategoryBySlug(slug);
+        if (category == null) return List.of();
+        return videoCategoryRepository.findVideoCategoriesByCategory(category, pageable).stream().map(VideoCategory::getVideo).toList();
     }
 }

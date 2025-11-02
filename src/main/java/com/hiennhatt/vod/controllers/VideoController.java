@@ -3,6 +3,7 @@ package com.hiennhatt.vod.controllers;
 import com.hiennhatt.vod.dtos.CreationDTO;
 import com.hiennhatt.vod.dtos.PreSaveFileDTO;
 import com.hiennhatt.vod.dtos.VideoOverviewDTO;
+import com.hiennhatt.vod.models.Category;
 import com.hiennhatt.vod.models.CustomUserDetails;
 import com.hiennhatt.vod.repositories.projections.VideoDetailProjection;
 import com.hiennhatt.vod.repositories.projections.VideoOverviewProjection;
@@ -75,27 +76,33 @@ public class VideoController {
         this.videoService.deleteVideo(uid, customUserDetails.getUser());
     }
 
-    @PostMapping("{videoUid}/categories")
+    @PostMapping("/{videoUid}/categories")
     @PreAuthorize("isAuthenticated()")
     public void addCategoriesToVideo(@RequestBody @Valid AddCategoriesToVideoValidation body, @AuthenticationPrincipal CustomUserDetails customUserDetails, @PathVariable @Valid @org.hibernate.validator.constraints.UUID String videoUid) {
         videoCategoryService.addCategoriesToVideo(body.getCategories(), videoUid, customUserDetails.getUser());
     }
 
+    @GetMapping("/{videoUid}/categories")
+    @PreAuthorize("isAuthenticated()")
+    public List<Category> getCategories(@PathVariable UUID videoUid) {
+        return videoCategoryService.getVideoCategories(videoUid);
+    }
+
     @GetMapping("")
     public List<VideoOverviewDTO> findVideos(@RequestParam String q, @RequestParam(required = false) Integer page) {
-        Pageable pageable = PageRequest.of(page == null ? 0 : page, 12);
+        Pageable pageable = PageRequest.of(page == null ? 0 : page, 9);
         return videoService.findVideoByKeyword('%' + q + '%', pageable).stream().map(VideoOverviewDTO::new).toList();
     }
 
     @GetMapping("latest")
     public List<VideoOverviewDTO> lastestVideos(@RequestParam(required = false) Integer page) {
-        Pageable pageable = PageRequest.of(page == null ? 0 : page, 12, Sort.by(Sort.Direction.DESC, "createdOn"));
+        Pageable pageable = PageRequest.of(page == null ? 0 : page, 9, Sort.by(Sort.Direction.DESC, "createdOn"));
         return videoService.getLatestVideos(pageable).stream().map(VideoOverviewDTO::new).toList();
     }
 
     @GetMapping("subscribed")
     public List<VideoOverviewDTO> getVideosSubscribedByUser(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestParam(required = false) Integer page) {
-        Pageable pageable = PageRequest.of(page == null ? 0 : page, 12);
+        Pageable pageable = PageRequest.of(page == null ? 0 : page, 9);
         return videoService.getVideosSubscribedByUser(customUserDetails.getUser(), pageable).stream().map(VideoOverviewDTO::new).toList();
     }
 }
